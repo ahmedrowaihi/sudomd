@@ -9,6 +9,7 @@ import { TaskItem } from "@tiptap/extension-list";
 import { listExtensions, markdownToTiptapDoc, tiptapDocToMarkdown } from "@hubble.md/editor";
 import { useEffect, useMemo, useRef } from "react";
 import { loadPath, savePathContent, viewerStore } from "./store";
+import { createAppMenu } from "./appMenu";
 import "./App.css";
 
 function App() {
@@ -30,6 +31,11 @@ function App() {
   }
 
   useEffect(() => {
+    const setupMenu = async () => {
+      const menu = await createAppMenu({ open: () => void openFilePicker() });
+      await menu.setAsAppMenu();
+    };
+    void setupMenu();
     const onKeyDown = async (event: KeyboardEvent) => {
       if (keymatch(event, "CmdOrCtrl+O")) {
         event.preventDefault();
@@ -89,17 +95,11 @@ function App() {
 
   return (
     <main className="app">
-      <header className="toolbar">
-        <button className="button" type="button" onClick={() => void openFilePicker()}>
-          Open (⌘O)
-        </button>
-        <span className="path">{state.currentPath ?? "No file selected"}</span>
-      </header>
       <section className="content" aria-live="polite">
         {state.status === "loading" && <p>Loading…</p>}
         {state.status === "error" && <p>{state.error ?? "Failed to open file."}</p>}
         {state.status !== "loading" && state.status !== "error" && !state.currentPath && (
-          <p>Open a markdown file to edit.</p>
+          <p>Open a markdown file to edit. Press ⌘O.</p>
         )}
         {state.status === "ready" && state.currentPath && (
           <MarkdownEditor key={state.currentPath} path={state.currentPath} initialMarkdown={state.content} />
