@@ -1,7 +1,31 @@
-# Tauri + React + Typescript
+# Desktop App
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Desktop app for Hubble.md (TypeScript + Tauri v2).
 
-## Recommended IDE Setup
+## Run development server
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+From repo root:
+
+```sh
+pnpm --filter @hubble.md/desktop dev
+```
+
+Or from `apps/desktop`:
+
+```sh
+pnpm dev
+```
+
+## Build for production
+
+From repo root:
+
+```sh
+pnpm --filter @hubble.md/desktop build
+```
+
+Or from `apps/desktop`:
+
+```sh
+pnpm build
+```
