@@ -3,6 +3,7 @@ import {
 	listExtensions,
 	MarkdownRolloverExtension,
 	markdownToTiptapDoc,
+	StoredMarksDecorationExtension,
 	tiptapDocToMarkdown,
 } from "@hubble.md/editor";
 import { useStoreValue } from "@simplestack/store/react";
@@ -163,6 +164,7 @@ function MarkdownEditor({
 			TaskItem.configure({
 				nested: true,
 			}),
+			StoredMarksDecorationExtension,
 		],
 		content: initialDoc,
 		onUpdate: ({ editor: currentEditor }) => {

@@ -18,6 +18,7 @@ export {
 } from "./MarkdownRolloverExtension";
 export { markdownToTiptapDoc } from "./markdownToProsemirror";
 export { tiptapDocToMarkdown } from "./prosemirrorToMarkdown";
+export { StoredMarksDecorationExtension } from "./StoredMarksDecorationExtension";
 export {
 	isSelectionAtStartOfNode,
 	nearestSharedParentOfType,
