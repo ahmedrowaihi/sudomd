@@ -22,11 +22,13 @@ export const StoredMarksDecorationExtension = Extension.create({
 				props: {
 					decorations: (state: EditorState) => {
 						const { selection, storedMarks } = state;
-						if (!selection.empty || !storedMarks || storedMarks.length === 0) {
-							return null;
-						}
+						if (!selection.empty) return null;
 
-						const activeNames = storedMarks
+						// Check stored marks OR marks at the current cursor position
+						const marks = storedMarks || selection.$from.marks();
+						if (!marks || marks.length === 0) return null;
+
+						const activeNames = marks
 							.map((m) => m.type.name)
 							.filter((n): n is (typeof DECORATED_MARKS)[number] =>
 								(DECORATED_MARKS as readonly string[]).includes(n),
