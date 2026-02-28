@@ -1,6 +1,7 @@
 import { getMarkdownRolloverBoundaryState } from "@hubble.md/editor";
 import type { Editor } from "@tiptap/core";
 import { type RefObject, useEffect, useRef, useState } from "react";
+import { useEditorInputMode } from "./useEditorInputMode";
 
 type CursorStyle = "hidden" | "solid" | "blinking";
 type CursorPosition = {
@@ -26,7 +27,7 @@ export function VirtualCursor({
 	);
 	const [animatePosition, setAnimatePosition] = useState(true);
 	const blinkTimeoutRef = useRef<number | null>(null);
-	const inputModeRef = useRef<"pointer" | "keyboard">("keyboard");
+	const { inputModeRef } = useEditorInputMode({ editor, containerRef });
 
 	useEffect(() => {
 		if (!editor) return;
@@ -93,20 +94,12 @@ export function VirtualCursor({
 			setAnimatePosition(inputModeRef.current === "keyboard");
 			queueBlink();
 		};
-		const onMouseDown = () => {
-			inputModeRef.current = "pointer";
-		};
-		const onKeyDown = () => {
-			inputModeRef.current = "keyboard";
-		};
 
 		updateCursor();
 		editor.on("selectionUpdate", updateCursor);
 		editor.on("transaction", updateCursor);
 		editor.on("focus", updateCursor);
 		editor.on("blur", updateCursor);
-		window.addEventListener("mousedown", onMouseDown, true);
-		window.addEventListener("keydown", onKeyDown, true);
 		window.addEventListener("resize", updateCursor);
 		window.addEventListener("scroll", updateCursor, true);
 
@@ -115,8 +108,6 @@ export function VirtualCursor({
 			editor.off("transaction", updateCursor);
 			editor.off("focus", updateCursor);
 			editor.off("blur", updateCursor);
-			window.removeEventListener("mousedown", onMouseDown, true);
-			window.removeEventListener("keydown", onKeyDown, true);
 			window.removeEventListener("resize", updateCursor);
 			window.removeEventListener("scroll", updateCursor, true);
 			clearBlinkTimeout();
