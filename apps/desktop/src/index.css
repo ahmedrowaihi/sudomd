@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "open-props/easings";
 
 :root {
 	--accent: #22a936;
@@ -9,21 +8,3 @@
 	--color-accent: var(--accent);
 }
 
-.link-popover-preview {
-	position: relative;
-	inline-size: 165px;
-	transition:
-		inline-size 300ms var(--ease-spring-3);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-	.link-popover-preview-enter {
-		inline-size: 70px;
-	}
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.link-popover-preview {
-		transition: none;
-	}
-}

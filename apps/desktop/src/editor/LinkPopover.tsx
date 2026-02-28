@@ -13,6 +13,7 @@ import MingcutePencilFill from "~icons/mingcute/pencil-fill";
 import { type RefObject, useEffect, useReducer, useRef, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
+import styles from "./LinkPopover.module.css";
 import { FOCUS_LINK_POPOVER_EVENT } from "./SmartLinkExtension";
 import { useEditorInputMode } from "./useEditorInputMode";
 
@@ -340,7 +341,7 @@ export function LinkPopover({
 			{machineState.mode === "preview" ? (
 				<button
 					type="button"
-					className={`link-popover-preview flex h-7 cursor-pointer overflow-hidden rounded-[2px] border border-zinc-300 bg-gradient-to-b from-white to-zinc-50 text-left shadow-[0_1px_3px_rgba(0,0,0,0.1)]${isPreviewEntering ? " link-popover-preview-enter" : ""}`}
+					className={`flex h-7 cursor-pointer overflow-hidden rounded-[2px] border border-zinc-300 bg-gradient-to-b from-white to-zinc-50 text-left shadow-[0_1px_3px_rgba(0,0,0,0.1)] ${styles.previewButton}${isPreviewEntering ? ` ${styles.previewButtonEnter}` : ""}`}
 					onTransitionEnd={() => {
 						positionUpdateRef.current?.();
 					}}
