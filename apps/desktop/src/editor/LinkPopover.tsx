@@ -332,7 +332,7 @@ export function LinkPopover({
 	return (
 		<div
 			ref={popoverRef}
-			className="fixed z-[2]"
+			className={`fixed z-[2] ${styles.popover}`}
 			style={{
 				insetInlineStart: `${floatingX}px`,
 				insetBlockStart: `${floatingY}px`,
