@@ -87,7 +87,6 @@ jobs:
         with:
           name: Issue #${{ github.event.issue.number }} triage
           cwd: ${{ github.workspace }}
-          output_format: json
           prompt: ${{ steps.prompt.outputs.prompt }}
           profile: ${{ vars.WARP_AGENT_PROFILE || '' }}
           warp_api_key: ${{ secrets.WARP_API_KEY }}
@@ -101,12 +100,28 @@ jobs:
           github-token: ${{ github.token }}
           script: |
             const raw = process.env.AGENT_OUTPUT || '';
-            let result;
+            const lines = raw.trim().split('\n');
+            let agentText = null;
 
+            for (const line of lines) {
+              try {
+                const parsed = JSON.parse(line);
+                if (parsed.type === 'agent' && parsed.text) {
+                  agentText = parsed.text;
+                }
+              } catch {}
+            }
+
+            if (!agentText) {
+              core.setFailed(`Could not find final agent text in Oz output.\n\nRaw output:\n${raw}`);
+              return;
+            }
+
+            let result;
             try {
-              result = JSON.parse(raw);
+              result = JSON.parse(agentText);
             } catch (error) {
-              core.setFailed(`Agent output was not valid JSON: ${error.message}\n\nRaw output:\n${raw}`);
+              core.setFailed(`Final agent text was not valid JSON: ${error.message}\n\nAgent text:\n${agentText}`);
               return;
             }
 
