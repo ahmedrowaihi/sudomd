@@ -3,5 +3,18 @@
 	"identifier": "default",
 	"description": "Capability for the main window",
 	"windows": ["main"],
-	"permissions": ["core:default", "dialog:default", "opener:default"]
+	"permissions": [
+		"core:default",
+		"core:window:allow-start-dragging",
+		"core:window:allow-set-title",
+		"dialog:default",
+		"dialog:allow-save",
+		"fs:allow-watch",
+		"fs:allow-unwatch",
+		{
+			"identifier": "fs:scope",
+			"allow": [{ "path": "$HOME/**" }]
+		},
+		"opener:default"
+	]
 }

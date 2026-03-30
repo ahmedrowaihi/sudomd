@@ -24,6 +24,7 @@ coverage/
 **/.astro/
 **/*.tsbuildinfo
 
+
 # tauri / rust build artifacts
 **/src-tauri/target/
 **/src-tauri/gen/schemas/
