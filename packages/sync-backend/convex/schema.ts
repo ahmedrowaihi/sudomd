@@ -25,6 +25,7 @@ export default defineSchema({
 		storageId: v.id("_storage"),
 		contentHash: v.string(),
 		updatedAt: v.number(),
+		orphanedAt: v.optional(v.number()),
 		deviceId: v.string(),
 		deleted: v.boolean(),
 	})

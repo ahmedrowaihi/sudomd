@@ -1,6 +1,16 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { type MutationCtx, mutation, query } from "./_generated/server";
+import {
+	internalMutation,
+	type MutationCtx,
+	mutation,
+	query,
+} from "./_generated/server";
+import {
+	assetCleanupDeviceId,
+	orphanAssetCandidates,
+	referencedAssetPaths,
+} from "./orphanAssets";
 
 async function contentHash(content: string): Promise<string> {
 	const data = new TextEncoder().encode(content);
@@ -167,6 +177,7 @@ async function upsertAsset(
 			storageId,
 			contentHash,
 			updatedAt: now,
+			orphanedAt: undefined,
 			deviceId,
 			deleted: false,
 		});
@@ -255,6 +266,158 @@ export const softDeleteAsset = mutation({
 			updatedAt: Date.now(),
 			deviceId,
 		});
+	},
+});
+
+export const listOrphanAssetCandidates = query({
+	args: { workspaceId: v.id("workspaces") },
+	handler: async (ctx, { workspaceId }) => {
+		// Full-workspace scan for admin inspection. Avoid calling from reactive UI
+		// paths or save/sync flows; large workspaces should use an indexed design.
+		const [files, assets] = await Promise.all([
+			ctx.db
+				.query("files")
+				.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
+				.collect(),
+			ctx.db
+				.query("assets")
+				.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
+				.collect(),
+		]);
+
+		return orphanAssetCandidates(files, assets);
+	},
+});
+
+async function markOrphanAssetCandidatesForWorkspace(
+	ctx: MutationCtx,
+	workspaceId: Id<"workspaces">,
+) {
+	// First phase of delayed cleanup. This is deliberately conservative: it
+	// records candidates but leaves blobs in place for a later sweep.
+	const [files, assets] = await Promise.all([
+		ctx.db
+			.query("files")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
+			.collect(),
+		ctx.db
+			.query("assets")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
+			.collect(),
+	]);
+	const references = referencedAssetPaths(files);
+	const now = Date.now();
+	let marked = 0;
+	let restored = 0;
+
+	for (const asset of assets) {
+		if (asset.deleted) continue;
+		if (references.has(asset.path)) {
+			if (asset.orphanedAt !== undefined) {
+				await ctx.db.patch(asset._id, { orphanedAt: undefined });
+				restored++;
+			}
+			continue;
+		}
+		if (asset.orphanedAt === undefined) {
+			await ctx.db.patch(asset._id, { orphanedAt: now });
+			marked++;
+		}
+	}
+
+	return { marked, restored };
+}
+
+export const markOrphanAssetCandidates = mutation({
+	args: { workspaceId: v.id("workspaces") },
+	handler: async (ctx, { workspaceId }) => {
+		return markOrphanAssetCandidatesForWorkspace(ctx, workspaceId);
+	},
+});
+
+async function deleteOrphanAssetsForWorkspace(
+	ctx: MutationCtx,
+	workspaceId: Id<"workspaces">,
+	gracePeriodMs: number,
+) {
+	// Second phase of delayed cleanup. Re-scan before deleting so assets that
+	// became referenced during the grace period are restored instead of swept.
+	const [files, assets] = await Promise.all([
+		ctx.db
+			.query("files")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
+			.collect(),
+		ctx.db
+			.query("assets")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
+			.collect(),
+	]);
+	const references = referencedAssetPaths(files);
+	const cutoff = Date.now() - gracePeriodMs;
+	const deleted: string[] = [];
+
+	for (const asset of assets) {
+		if (references.has(asset.path)) {
+			if (asset.orphanedAt !== undefined) {
+				await ctx.db.patch(asset._id, { orphanedAt: undefined });
+			}
+			continue;
+		}
+		if (
+			asset.deleted ||
+			asset.orphanedAt === undefined ||
+			asset.orphanedAt > cutoff
+		) {
+			continue;
+		}
+		await ctx.storage.delete(asset.storageId);
+		await ctx.db.patch(asset._id, {
+			deleted: true,
+			updatedAt: Date.now(),
+			deviceId: assetCleanupDeviceId(),
+		});
+		deleted.push(asset.path);
+	}
+
+	return { deleted };
+}
+
+export const deleteOrphanAssets = mutation({
+	args: {
+		workspaceId: v.id("workspaces"),
+		gracePeriodMs: v.number(),
+	},
+	handler: async (ctx, { workspaceId, gracePeriodMs }) => {
+		return deleteOrphanAssetsForWorkspace(ctx, workspaceId, gracePeriodMs);
+	},
+});
+
+export const runOrphanAssetCleanupForAllWorkspaces = internalMutation({
+	args: { gracePeriodMs: v.number() },
+	handler: async (ctx, { gracePeriodMs }) => {
+		// Scheduled maintenance MVP: scan each workspace in one transaction. This is
+		// acceptable while workspaces hold thousands of documents, not millions.
+		const workspaces = await ctx.db.query("workspaces").collect();
+		let marked = 0;
+		let restored = 0;
+		let deleted = 0;
+
+		for (const workspace of workspaces) {
+			const markResult = await markOrphanAssetCandidatesForWorkspace(
+				ctx,
+				workspace._id,
+			);
+			const deleteResult = await deleteOrphanAssetsForWorkspace(
+				ctx,
+				workspace._id,
+				gracePeriodMs,
+			);
+			marked += markResult.marked;
+			restored += markResult.restored;
+			deleted += deleteResult.deleted.length;
+		}
+
+		return { workspaces: workspaces.length, marked, restored, deleted };
 	},
 });
 
