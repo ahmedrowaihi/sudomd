@@ -36,4 +36,13 @@ pnpm build:desktop
 pnpm bundle:desktop
 ```
 
-`bundle:desktop` creates a macOS Electron bundle under `apps/desktop/release/`.
+`bundle:desktop` creates macOS release artifacts under `apps/desktop/release/`.
+
+## Distribution
+
+The desktop app is macOS-only for now. Production updates use GitHub Releases
+on `bholmesdev/hubble.md`. Each release should include:
+
+- `latest-mac.yml`
+- the generated `.zip`
+- the generated `.dmg`

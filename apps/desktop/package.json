@@ -2,6 +2,8 @@
 	"name": "@hubble.md/desktop",
 	"private": true,
 	"version": "0.1.0",
+	"description": "Desktop app for Hubble.md",
+	"author": "Ben Holmes",
 	"type": "module",
 	"main": "./out/main/main.js",
 	"scripts": {
@@ -9,6 +11,7 @@
 		"dev:debug": "HUBBLE_DESKTOP_ENABLE_CDP=1 electron-vite dev",
 		"build": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && electron-vite build",
 		"bundle": "pnpm build && electron-builder --mac",
+		"bundle:publish": "pnpm build && electron-builder --mac --publish always",
 		"preview": "vite preview",
 		"test": "vitest run"
 	},
@@ -26,6 +29,7 @@
 		"@tiptap/starter-kit": "^3.3.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
+		"electron-updater": "^6.8.3",
 		"keymatch": "^1.0.5",
 		"open-props": "^1.7.23",
 		"react": "^19.1.0",
@@ -63,8 +67,18 @@
 		"files": [
 			"out/**"
 		],
+		"publish": [
+			{
+				"provider": "github",
+				"owner": "bholmesdev",
+				"repo": "hubble.md"
+			}
+		],
 		"mac": {
-			"target": "dir",
+			"target": [
+				"dmg",
+				"zip"
+			],
 			"category": "public.app-category.productivity"
 		},
 		"fileAssociations": [

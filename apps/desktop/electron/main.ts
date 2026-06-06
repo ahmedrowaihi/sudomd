@@ -12,6 +12,7 @@ import {
 	protocol,
 	shell,
 } from "electron";
+import electronUpdater from "electron-updater";
 
 type FileEntry = {
 	path: string;
@@ -23,7 +24,11 @@ type MenuState = {
 };
 
 const isDev = !app.isPackaged;
+const { autoUpdater } = electronUpdater;
 const debugPort = process.env.HUBBLE_DESKTOP_DEBUG_PORT ?? "9222";
+const updateFeedUrl = process.env.HUBBLE_DESKTOP_UPDATE_URL;
+// Check every 4 hours after the initial packaged-app update check.
+const updateCheckIntervalMs = 4 * 60 * 60 * 1000;
 
 if (isDev && process.env.HUBBLE_DESKTOP_ENABLE_CDP === "1") {
 	app.commandLine.appendSwitch("remote-debugging-address", "127.0.0.1");
@@ -35,6 +40,9 @@ let pendingOpenPath: string | null = firstExistingFileArg(
 	process.argv.slice(1),
 );
 let menuState: MenuState = { hasWorkspace: false };
+let updateDownloaded = false;
+let updateCheckInFlight = false;
+let manualUpdateCheck = false;
 const watchers = new Map<string, FSWatcher>();
 const grantedFiles = new Set<string>();
 const grantedRoots = new Set<string>();
@@ -235,6 +243,24 @@ function buildMenu() {
 		template.unshift({
 			label: app.name,
 			submenu: [
+				{
+					id: "check-for-updates",
+					label: updateCheckInFlight
+						? "Checking for Updates..."
+						: "Check for Updates...",
+					enabled: !updateCheckInFlight,
+					click: () => {
+						void checkForUpdates({ manual: true });
+					},
+				},
+				{
+					id: "restart-to-update",
+					label: "Restart to Update",
+					enabled: updateDownloaded,
+					visible: updateDownloaded,
+					click: () => autoUpdater.quitAndInstall(false, true),
+				},
+				{ type: "separator" },
 				{ role: "services" },
 				{ type: "separator" },
 				{ role: "hide" },
@@ -247,6 +273,83 @@ function buildMenu() {
 	}
 
 	Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
+async function checkForUpdates({ manual = false } = {}) {
+	if (isDev || process.platform !== "darwin" || updateCheckInFlight) return;
+	updateCheckInFlight = true;
+	manualUpdateCheck = manual;
+	buildMenu();
+	try {
+		await autoUpdater.checkForUpdates();
+	} catch (error) {
+		if (manual) {
+			dialog.showErrorBox(
+				"Unable to Check for Updates",
+				error instanceof Error ? error.message : String(error),
+			);
+		}
+		finishUpdateCheck();
+	}
+}
+
+function finishUpdateCheck() {
+	updateCheckInFlight = false;
+	manualUpdateCheck = false;
+	buildMenu();
+}
+
+async function showUpdateMessage(message: string) {
+	await dialog.showMessageBox(mainWindow ?? undefined, {
+		type: "info",
+		message,
+	});
+}
+
+function showManualUpdateMessage(message: string) {
+	if (!manualUpdateCheck) return;
+	void showUpdateMessage(message);
+}
+
+function showManualUpdateError(error: Error) {
+	if (!manualUpdateCheck) return;
+	dialog.showErrorBox("Unable to Check for Updates", error.message);
+}
+
+function configureAutoUpdates() {
+	if (isDev || process.platform !== "darwin") return;
+	if (updateFeedUrl) {
+		autoUpdater.setFeedURL({
+			provider: "generic",
+			url: updateFeedUrl,
+		});
+	}
+	autoUpdater.autoDownload = true;
+	autoUpdater.autoInstallOnAppQuit = true;
+	autoUpdater.on("update-available", () => {
+		showManualUpdateMessage("An update is downloading in the background.");
+	});
+	autoUpdater.on("update-not-available", () => {
+		showManualUpdateMessage("Hubble is up to date.");
+		finishUpdateCheck();
+	});
+	autoUpdater.on("update-downloaded", () => {
+		updateDownloaded = true;
+		showManualUpdateMessage(
+			"Update ready. Use Hubble > Restart to Update when ready.",
+		);
+		finishUpdateCheck();
+	});
+	autoUpdater.on("error", (error) => {
+		console.error("Auto-update error", error);
+		showManualUpdateError(error);
+		finishUpdateCheck();
+	});
+
+	void checkForUpdates();
+	setInterval(() => {
+		void checkForUpdates();
+	}, updateCheckIntervalMs);
 }
 
 function extensionFromImage(
@@ -586,6 +689,7 @@ if (!singleInstanceLock) {
 		});
 		registerIpc();
 		buildMenu();
+		configureAutoUpdates();
 		await createWindow();
 	});
 
