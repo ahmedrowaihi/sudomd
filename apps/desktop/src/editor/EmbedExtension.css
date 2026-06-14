@@ -11,6 +11,16 @@
 	min-block-size: 2rem;
 }
 
+.hubble-iframe-embed {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	display: block;
+	inline-size: 100%;
+	min-block-size: 80px;
+	overflow: hidden;
+}
+
 .hubble-embed-error {
 	border: 1px solid hsl(var(--destructive));
 	border-radius: 8px;

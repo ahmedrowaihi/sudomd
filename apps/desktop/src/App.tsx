@@ -421,7 +421,10 @@ function MarkdownEditor({
 			wikiTargets={wikiTargets}
 			extensions={[
 				createImageExtension(path),
-				createEmbedExtension(workspace.workspacePath),
+				createEmbedExtension({
+					workspacePath: workspace.workspacePath,
+					filePath: path,
+				}),
 			]}
 			onPaste={(editor, event) => handleImagePaste({ editor, event })}
 			onDrop={(editor, event) => handleImageDrop({ editor, event })}

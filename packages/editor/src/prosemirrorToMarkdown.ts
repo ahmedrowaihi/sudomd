@@ -77,6 +77,12 @@ function blockToMarkdown(node: JSONContent): string {
 		}
 
 		case "embed": {
+			if (node.attrs?.kind === "iframe") {
+				const src = String(node.attrs?.src ?? "");
+				if (!isValidIframeEmbedSrc(src)) return "";
+				return `<iframe src="${escapeHtmlAttr(src)}"></iframe>`;
+			}
+
 			const tagName = String(node.attrs?.tagName ?? "");
 			if (!/^embed-[a-z0-9][a-z0-9-]*$/.test(tagName)) return "";
 			const props =
@@ -95,6 +101,20 @@ function blockToMarkdown(node: JSONContent): string {
 		default:
 			return "";
 	}
+}
+
+const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|hubble-asset:)/i;
+const LOCAL_IFRAME_SRC = /^(\.{1,2}\/|[^:/\\]+(?:\/|$)).*\.html(?:[?#].*)?$/i;
+
+function isValidIframeEmbedSrc(src: string): boolean {
+	if (!src.trim()) return false;
+	if (BLOCKED_IFRAME_SCHEME.test(src)) {
+		return false;
+	}
+	if (src.startsWith("/") || src.startsWith("\\") || src.startsWith("//")) {
+		return false;
+	}
+	return LOCAL_IFRAME_SRC.test(src);
 }
 
 function escapeHtmlAttr(value: string) {

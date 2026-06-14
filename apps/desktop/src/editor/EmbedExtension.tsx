@@ -4,13 +4,22 @@ import {
 	type ReactNodeViewProps,
 	ReactNodeViewRenderer,
 } from "@tiptap/react";
-import { useEffect, useRef } from "react";
+import alpineRuntime from "alpinejs/dist/cdn.min.js?raw";
+import { useEffect, useRef, useState } from "react";
+import { desktopApi } from "../desktopApi";
 import "./EmbedExtension.css";
 
 type EmbedAttrs = {
+	kind?: "bundle" | "iframe";
 	name: string;
 	tagName: string;
 	props: Record<string, string>;
+	src?: string;
+};
+
+type EmbedExtensionOptions = {
+	workspacePath: string | null;
+	filePath: string;
 };
 
 type EmbedBundle = {
@@ -40,8 +49,11 @@ declare global {
 
 const EMBED_ELEMENT = "hubble-embed-host";
 const loadedBundles = new Map<string, Promise<EmbedBundle>>();
+const MIN_IFRAME_HEIGHT = 80;
+const MAX_IFRAME_HEIGHT = 4000;
+const IFRAME_PADDING = 2;
 
-export function createEmbedExtension(workspacePath: string | null) {
+export function createEmbedExtension(options: EmbedExtensionOptions) {
 	return Node.create({
 		name: "embed",
 		group: "block",
@@ -54,17 +66,22 @@ export function createEmbedExtension(workspacePath: string | null) {
 				name: { default: "" },
 				tagName: { default: "" },
 				props: { default: {} },
+				kind: { default: "bundle" },
+				src: { default: "" },
 			};
 		},
 
 		renderHTML({ node }) {
 			const attrs = node.attrs as EmbedAttrs;
+			if (attrs.kind === "iframe") {
+				return ["iframe", { src: attrs.src ?? "" }];
+			}
 			return [attrs.tagName || `embed-${attrs.name}`, attrs.props ?? {}];
 		},
 
 		addNodeView() {
 			return ReactNodeViewRenderer((props) => (
-				<EmbedNodeView {...props} workspacePath={workspacePath} />
+				<EmbedNodeView {...props} options={options} />
 			));
 		},
 	});
@@ -143,10 +160,27 @@ if (!customElements.get(EMBED_ELEMENT)) {
 
 function EmbedNodeView({
 	node,
-	workspacePath,
-}: ReactNodeViewProps & { workspacePath: string | null }) {
-	const hostRef = useRef<HTMLDivElement | null>(null);
+	options,
+}: ReactNodeViewProps & { options: EmbedExtensionOptions }) {
 	const attrs = node.attrs as EmbedAttrs;
+
+	if (attrs.kind === "iframe") {
+		return <IframeEmbedNodeView attrs={attrs} filePath={options.filePath} />;
+	}
+
+	return (
+		<BundleEmbedNodeView attrs={attrs} workspacePath={options.workspacePath} />
+	);
+}
+
+function BundleEmbedNodeView({
+	attrs,
+	workspacePath,
+}: {
+	attrs: EmbedAttrs;
+	workspacePath: string | null;
+}) {
+	const hostRef = useRef<HTMLDivElement | null>(null);
 	const propsJson = JSON.stringify(attrs.props ?? {});
 
 	useEffect(() => {
@@ -155,7 +189,9 @@ function EmbedNodeView({
 
 		const element = document.createElement(EMBED_ELEMENT);
 		element.setAttribute("embed-name", attrs.name);
-		if (workspacePath) element.setAttribute("workspace-path", workspacePath);
+		if (workspacePath) {
+			element.setAttribute("workspace-path", workspacePath);
+		}
 		element.setAttribute("props-json", propsJson);
 		host.replaceChildren(element);
 	}, [attrs.name, propsJson, workspacePath]);
@@ -163,6 +199,91 @@ function EmbedNodeView({
 	return (
 		<NodeViewWrapper className="hubble-embed">
 			<div className="hubble-embed-host" ref={hostRef} />
+		</NodeViewWrapper>
+	);
+}
+
+function IframeEmbedNodeView({
+	attrs,
+	filePath,
+}: {
+	attrs: EmbedAttrs;
+	filePath: string;
+}) {
+	const iframeRef = useRef<HTMLIFrameElement | null>(null);
+	const [srcDoc, setSrcDoc] = useState("");
+	const [error, setError] = useState<string | null>(null);
+	const [height, setHeight] = useState(MIN_IFRAME_HEIGHT);
+	const src = attrs.src ?? "";
+
+	useEffect(() => {
+		let cancelled = false;
+		setSrcDoc("");
+		setError(null);
+		setHeight(MIN_IFRAME_HEIGHT);
+
+		if (!isValidIframeSrc(src)) {
+			setError("Iframe embed src must be a local .html path.");
+			return;
+		}
+
+		const htmlPath = joinPath(dirname(filePath), src);
+		void desktopApi
+			.resolvePath(htmlPath)
+			.then((absolutePath) => desktopApi.readFileText(absolutePath))
+			.then((html) => {
+				if (!cancelled) {
+					setSrcDoc(injectIframeRuntime(html));
+				}
+			})
+			.catch((error) => {
+				if (!cancelled) {
+					setError(error instanceof Error ? error.message : String(error));
+				}
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [filePath, src]);
+
+	useEffect(() => {
+		const iframe = iframeRef.current;
+		if (!iframe) return;
+
+		const onMessage = (event: MessageEvent) => {
+			if (event.source !== iframe.contentWindow) return;
+			const data = event.data as { type?: unknown; height?: unknown } | null;
+			if (!data || data.type !== "hubble:embed-height") return;
+			const height = Number(data.height);
+			if (!Number.isFinite(height)) return;
+			const clamped = Math.max(
+				MIN_IFRAME_HEIGHT,
+				Math.min(MAX_IFRAME_HEIGHT, Math.ceil(height) + IFRAME_PADDING),
+			);
+			setHeight((current) => (current === clamped ? current : clamped));
+		};
+
+		window.addEventListener("message", onMessage);
+		return () => window.removeEventListener("message", onMessage);
+	}, []);
+
+	return (
+		<NodeViewWrapper className="hubble-embed">
+			{error ? (
+				<p className="hubble-embed-error">{error}</p>
+			) : (
+				<iframe
+					ref={iframeRef}
+					className="hubble-iframe-embed"
+					height={height}
+					title={src || "Hubble iframe embed"}
+					sandbox="allow-scripts allow-same-origin"
+					srcDoc={srcDoc}
+					style={{ blockSize: `${height}px` }}
+					width="100%"
+				/>
+			)}
 		</NodeViewWrapper>
 	);
 }
@@ -241,6 +362,68 @@ function joinPath(root: string, ...parts: string[]) {
 	return [normalizedRoot, ...parts].join("/");
 }
 
+function dirname(filePath: string): string {
+	const normalized = filePath.split("\\").join("/");
+	const idx = normalized.lastIndexOf("/");
+	if (idx <= 0) return normalized;
+	return normalized.slice(0, idx);
+}
+
+const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|hubble-asset:)/i;
+const LOCAL_IFRAME_SRC = /^(\.{1,2}\/|[^:/\\]+(?:\/|$)).*\.html(?:[?#].*)?$/i;
+
+/**
+ * Iframe embeds may point to workspace-local .html files only. Paths are
+ * resolved relative to the Markdown file and get Hubble's injected mini-app
+ * runtime. Remote URLs, app-internal schemes, inline code, and local absolute
+ * paths are rejected.
+ */
+function isValidIframeSrc(src: string): boolean {
+	if (!src.trim()) return false;
+	if (BLOCKED_IFRAME_SCHEME.test(src)) {
+		return false;
+	}
+	if (src.startsWith("/") || src.startsWith("\\") || src.startsWith("//")) {
+		return false;
+	}
+	return LOCAL_IFRAME_SRC.test(src);
+}
+
 function isValidEmbedName(name: string) {
 	return /^[a-z0-9][a-z0-9-]*$/.test(name);
+}
+
+function injectIframeRuntime(html: string): string {
+	const runtime = `<style>
+html,
+body {
+  overflow: hidden;
+}
+</style>
+${alpineRuntime ? `<script defer>${alpineRuntime}</script>` : ""}
+<script>
+(() => {
+  const send = () => {
+    const body = document.body;
+    const bodyTop = body ? body.getBoundingClientRect().top : 0;
+    const height = body
+      ? Array.from(body.children).reduce((max, child) => {
+          if (!(child instanceof HTMLElement)) return max;
+          if (child.tagName === "SCRIPT" || child.tagName === "STYLE") return max;
+          return Math.max(max, child.getBoundingClientRect().bottom - bodyTop);
+        }, 0)
+      : 0;
+    parent.postMessage({ type: "hubble:embed-height", height }, "*");
+  };
+  const schedule = () => requestAnimationFrame(send);
+  window.addEventListener("load", schedule);
+  new ResizeObserver(schedule).observe(document.documentElement);
+  if (document.body) new ResizeObserver(schedule).observe(document.body);
+  schedule();
+})();
+</script>`;
+	if (/<\/body\s*>/i.test(html)) {
+		return html.replace(/<\/body\s*>/i, `${runtime}</body>`);
+	}
+	return `${html}${runtime}`;
 }

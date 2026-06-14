@@ -155,12 +155,28 @@ function hastToEmbed(root: HastRoot): JSONContent | null {
 	if (!isHastElement(node)) return null;
 
 	const tagName = node.tagName.toLowerCase();
-	if (!isEmbedTag(tagName)) return null;
 	if (node.children.some(hasMeaningfulHtml)) return null;
 
+	if (tagName === "iframe") {
+		const src = getStringProperty(node.properties?.src);
+		if (!isValidIframeEmbedSrc(src)) return null;
+		return {
+			type: "embed",
+			attrs: {
+				kind: "iframe",
+				name: "",
+				tagName,
+				props: {},
+				src,
+			},
+		};
+	}
+
+	if (!isEmbedTag(tagName)) return null;
 	return {
 		type: "embed",
 		attrs: {
+			kind: "bundle",
 			name: tagName.slice("embed-".length),
 			tagName,
 			props: Object.fromEntries(
@@ -171,6 +187,26 @@ function hastToEmbed(root: HastRoot): JSONContent | null {
 			),
 		},
 	};
+}
+
+const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|hubble-asset:)/i;
+const LOCAL_IFRAME_SRC = /^(\.{1,2}\/|[^:/\\]+(?:\/|$)).*\.html(?:[?#].*)?$/i;
+
+function getStringProperty(value: unknown): string {
+	if (typeof value === "string") return value;
+	if (typeof value === "number") return String(value);
+	return "";
+}
+
+function isValidIframeEmbedSrc(src: string): boolean {
+	if (!src.trim()) return false;
+	if (BLOCKED_IFRAME_SCHEME.test(src)) {
+		return false;
+	}
+	if (src.startsWith("/") || src.startsWith("\\") || src.startsWith("//")) {
+		return false;
+	}
+	return LOCAL_IFRAME_SRC.test(src);
 }
 
 function isEmbedTag(tagName: string): boolean {
