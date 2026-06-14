@@ -372,7 +372,12 @@ function isFormatActive(editor: Editor, kind: FormatCommandKind) {
 
 	switch (kind) {
 		case "paragraph":
-			return editor.isActive("paragraph");
+			return (
+				editor.isActive("paragraph") &&
+				!editor.isActive("bulletList") &&
+				!editor.isActive("orderedList") &&
+				!editor.isActive("blockquote")
+			);
 		case "heading1":
 			return editor.isActive("heading", { level: 1 });
 		case "heading2":
