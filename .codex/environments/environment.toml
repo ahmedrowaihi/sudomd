@@ -6,18 +6,27 @@ name = "hubble.md"
 script = '''
 set -eu
 
-SOURCE_REPO="/Users/benholmes/Projects/hubble.md"
-WORKTREE="${CODEX_WORKTREE_PATH:-$PWD}"
+SOURCE_REPO="${HUBBLE_ENV_SOURCE_REPO:-/Users/benholmes/Projects/hubble.md}"
+WORKTREE="${CODEX_WORKTREE_PATH:-$(git rev-parse --show-toplevel)}"
 
 cd "$WORKTREE"
 
 find "$SOURCE_REPO" \
-  \( -name '.git' -o -name 'node_modules' \) -prune -o \
-  -type f \( -name '.env' -o -name '.env.*' \) ! -name '.env.example' -print |
-while IFS= read -r source_file; do
-  rel="${source_file#${SOURCE_REPO}/}"
-  dest="$WORKTREE/$rel"
+  -type d \( -name '.git' -o -name 'node_modules' \) -prune -o \
+  -type f \( -name '.env' -o -name '.env.*' \) ! -name '.env.example' \
+  -exec sh -c '
+source_root=$1
+worktree=$2
+prefix="$source_root/"
+shift 2
 
+for source_file do
+  rel=${source_file#"$prefix"}
+  if [ "$rel" = "$source_file" ]; then
+    continue
+  fi
+
+  dest="$worktree/$rel"
   if [ -e "$dest" ] || [ -L "$dest" ]; then
     continue
   fi
@@ -25,6 +34,7 @@ while IFS= read -r source_file; do
   mkdir -p "$(dirname "$dest")"
   cp "$source_file" "$dest"
 done
+' sh "$SOURCE_REPO" "$WORKTREE" {} +
 
 pnpm install
 '''
