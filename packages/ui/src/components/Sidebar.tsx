@@ -40,6 +40,8 @@ const sidebarActionClass =
 	"flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-start text-[11px] font-normal outline-hidden select-none";
 const sidebarActionIconClass =
 	"inline-flex size-4 shrink-0 items-center justify-center [&_svg]:size-3.5";
+const sidebarRowContentClass =
+	"flex min-w-0 flex-1 items-center gap-1 [padding-block:var(--row-pad-block)] [padding-inline-end:var(--row-pad-inline)] text-start text-[length:var(--font-size-sidebar)]";
 const DEFAULT_SIDEBAR_WIDTH = 220;
 const MIN_SIDEBAR_WIDTH = 180;
 const MAX_SIDEBAR_WIDTH = 360;
@@ -319,6 +321,21 @@ export function Sidebar({
 					const isFocused = focusedIndex === index;
 					const isRenaming =
 						row.kind === "file" && row.file.path === renamingPath;
+					const rowStyle = {
+						paddingInlineStart: `${0.5 + row.depth * 0.75}rem`,
+					} as React.CSSProperties;
+					const chevron = (
+						<span className="inline-flex size-3 shrink-0 items-center justify-center text-muted-foreground">
+							{row.kind === "folder" && (
+								<MingcuteRightLine
+									className={cn(
+										"size-3 transition-transform duration-150 ease-out",
+										row.expanded && "rotate-90",
+									)}
+								/>
+							)}
+						</span>
+					);
 					return (
 						<div
 							key={row.kind === "folder" ? row.id : row.file.path}
@@ -348,28 +365,12 @@ export function Sidebar({
 							}}
 							title={row.label}
 						>
-							<div
-								className={cn(
-									"flex min-w-0 flex-1 items-center gap-1 [padding-block:var(--row-pad-block)] [padding-inline-end:var(--row-pad-inline)] text-start text-[length:var(--font-size-sidebar)]",
-									isRenaming ? "overflow-visible" : "truncate",
-								)}
-								style={
-									{
-										paddingInlineStart: `${0.5 + row.depth * 0.75}rem`,
-									} as React.CSSProperties
-								}
-							>
-								<span className="inline-flex size-3 shrink-0 items-center justify-center text-muted-foreground">
-									{row.kind === "folder" && (
-										<MingcuteRightLine
-											className={cn(
-												"size-3 transition-transform duration-150 ease-out",
-												row.expanded && "rotate-90",
-											)}
-										/>
-									)}
-								</span>
-								{isRenaming ? (
+							{isRenaming ? (
+								<div
+									className={cn(sidebarRowContentClass, "overflow-visible")}
+									style={rowStyle}
+								>
+									{chevron}
 									<FileRenameInput
 										ref={renameInputRef}
 										value={renameDraft}
@@ -385,25 +386,32 @@ export function Sidebar({
 										onCancel={cancelRename}
 										onCommit={commitRename}
 									/>
-								) : (
-									<button
-										type="button"
-										className="min-w-0 flex-1 truncate border-none bg-transparent p-0 text-start"
-										onClick={(event) => {
-											if (event.detail > 1) return;
-											activateRow(row);
-											requestAnimationFrame(() => navRef.current?.focus());
-										}}
-										onDoubleClick={(event) => {
-											if (row.kind !== "file" || !onRenameFile) return;
-											event.preventDefault();
-											beginRename(row.file, row.label);
-										}}
-									>
-										{row.label}
-									</button>
-								)}
-							</div>
+								</div>
+							) : (
+								<button
+									type="button"
+									className={cn(
+										sidebarRowContentClass,
+										"truncate border-none bg-transparent",
+									)}
+									style={rowStyle}
+									onClick={(event) => {
+										// `detail` is the click count; file double-clicks rename, but
+										// folders should keep responding to rapid expand/collapse clicks.
+										if (row.kind === "file" && event.detail > 1) return;
+										activateRow(row);
+										requestAnimationFrame(() => navRef.current?.focus());
+									}}
+									onDoubleClick={(event) => {
+										if (row.kind !== "file" || !onRenameFile) return;
+										event.preventDefault();
+										beginRename(row.file, row.label);
+									}}
+								>
+									{chevron}
+									<span className="min-w-0 flex-1 truncate">{row.label}</span>
+								</button>
+							)}
 							{row.kind === "folder" && (onCreateFile || onDeleteFolder) && (
 								<FolderActionsMenu
 									id={row.id}
