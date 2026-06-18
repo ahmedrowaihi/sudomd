@@ -51,6 +51,11 @@ export type DesktopUpdateState = {
 
 export type DesktopPlatform = NodeJS.Platform;
 
+export type WorkspaceConfig = {
+	version: 1;
+	pinnedNotes: string[];
+};
+
 export type DesktopApi = {
 	platform: DesktopPlatform;
 	listDirectory(path: string): Promise<FileEntry[]>;
@@ -58,6 +63,11 @@ export type DesktopApi = {
 		workspacePath: string,
 		glob: string,
 	): Promise<EmbedFileEntry[]>;
+	readWorkspaceConfig(workspacePath: string): Promise<WorkspaceConfig>;
+	writeWorkspaceConfig(
+		workspacePath: string,
+		config: WorkspaceConfig,
+	): Promise<void>;
 	readFileText(path: string): Promise<string>;
 	writeFileText(path: string, content: string): Promise<void>;
 	renameFile(fromPath: string, toPath: string): Promise<void>;

@@ -18,7 +18,11 @@ import {
 } from "electron";
 import electronUpdater from "electron-updater";
 import ignore from "ignore";
-import type { DesktopUpdateState } from "../src/desktopApi/types";
+import { z } from "zod/v4";
+import type {
+	DesktopUpdateState,
+	WorkspaceConfig,
+} from "../src/desktopApi/types";
 
 type FileEntry = {
 	path: string;
@@ -93,6 +97,22 @@ let grantsLoaded = false;
 
 const ignoreConfigFiles = [".gitignore", ".ignore"];
 const ignoredWorkspaceDirs = new Set([".git", "dist", "node_modules"]);
+const workspaceConfigVersion = 1;
+const workspaceConfigDir = ".hubble";
+const workspaceConfigFile = "config.json";
+const workspaceConfigSchema = z.object({
+	version: z.literal(workspaceConfigVersion),
+	pinnedNotes: z.array(
+		z
+			.string()
+			.min(1)
+			// Pin refs live inside the workspace config; reject absolute paths and
+			// traversal so config edits cannot point pin state outside the workspace.
+			.refine(
+				(note) => !path.isAbsolute(note) && !note.split("/").includes(".."),
+			),
+	),
+});
 const iframeHeadStyles = [
 	{ name: "hubble-theme", source: embedTheme },
 ] as const;
@@ -107,6 +127,32 @@ const iframeBodyEndScripts = [
 
 function grantsPath(): string {
 	return path.join(app.getPath("userData"), "grants.json");
+}
+
+function workspaceConfigPath(workspacePath: string): string {
+	const root = assertGrantedRoot(workspacePath);
+	return path.join(root, workspaceConfigDir, workspaceConfigFile);
+}
+
+function emptyWorkspaceConfig(): WorkspaceConfig {
+	return { version: workspaceConfigVersion, pinnedNotes: [] };
+}
+
+function parseWorkspaceConfig(raw: string): WorkspaceConfig {
+	try {
+		return workspaceConfigSchema.parse(JSON.parse(raw));
+	} catch {
+		return emptyWorkspaceConfig();
+	}
+}
+
+function normalizeWorkspaceConfig(input: WorkspaceConfig): WorkspaceConfig {
+	const config = workspaceConfigSchema.safeParse(input);
+	if (!config.success) return emptyWorkspaceConfig();
+	return {
+		version: workspaceConfigVersion,
+		pinnedNotes: [...new Set(config.data.pinnedNotes)],
+	};
 }
 
 async function loadGrants() {
@@ -746,6 +792,40 @@ function registerIpc() {
 			const files: EmbedFileEntry[] = [];
 			await collectWorkspaceFiles(root, root, String(glob ?? "**/*"), files);
 			return files.sort((a, b) => a.path.localeCompare(b.path));
+		},
+	);
+
+	ipcMain.handle(
+		"desktop:read-workspace-config",
+		async (_event, { workspacePath }) => {
+			try {
+				return parseWorkspaceConfig(
+					await fs.readFile(workspaceConfigPath(workspacePath), "utf8"),
+				);
+			} catch (err) {
+				if (
+					err &&
+					typeof err === "object" &&
+					"code" in err &&
+					err.code === "ENOENT"
+				) {
+					return emptyWorkspaceConfig();
+				}
+				throw err;
+			}
+		},
+	);
+
+	ipcMain.handle(
+		"desktop:write-workspace-config",
+		async (_event, { workspacePath, config }) => {
+			const configPath = workspaceConfigPath(workspacePath);
+			await fs.mkdir(path.dirname(configPath), { recursive: true });
+			await fs.writeFile(
+				configPath,
+				`${JSON.stringify(normalizeWorkspaceConfig(config), null, 2)}\n`,
+			);
+			grantFile(configPath);
 		},
 	);
 

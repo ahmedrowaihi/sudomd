@@ -4,6 +4,8 @@ type MockDesktopApi = {
 	readFileText: ReturnType<typeof vi.fn>;
 	writeFileText: ReturnType<typeof vi.fn>;
 	listDirectory: ReturnType<typeof vi.fn>;
+	readWorkspaceConfig: ReturnType<typeof vi.fn>;
+	writeWorkspaceConfig: ReturnType<typeof vi.fn>;
 	renameFile: ReturnType<typeof vi.fn>;
 };
 
@@ -12,6 +14,8 @@ function createDesktopApi(): MockDesktopApi {
 		readFileText: vi.fn(async () => "before"),
 		writeFileText: vi.fn(async () => {}),
 		listDirectory: vi.fn(async () => []),
+		readWorkspaceConfig: vi.fn(async () => ({ version: 1, pinnedNotes: [] })),
+		writeWorkspaceConfig: vi.fn(async () => {}),
 		renameFile: vi.fn(async () => {}),
 	};
 }
@@ -161,5 +165,89 @@ describe("desktop renameMarkdownFile", () => {
 		expect(workspaceStore.get().lastOpenedPaths["/workspace"]).toBe(
 			"/workspace/renamed.md",
 		);
+	});
+
+	it("updates pinned note paths in workspace config", async () => {
+		const api = createDesktopApi();
+		const { appStore, renameMarkdownFile, workspaceStore } =
+			await loadStoreActions(api);
+		const path = "/workspace/original.md";
+
+		appStore.set((current) => ({
+			...current,
+			workspace: {
+				...current.workspace,
+				workspacePath: "/workspace",
+				files: [{ path, modified_at: 1 }],
+				pinnedNotes: [path],
+			},
+		}));
+
+		await renameMarkdownFile(path, "renamed");
+
+		expect(workspaceStore.get().pinnedNotes).toEqual(["/workspace/renamed.md"]);
+		expect(api.writeWorkspaceConfig).toHaveBeenCalledWith("/workspace", {
+			version: 1,
+			pinnedNotes: ["renamed.md"],
+		});
+	});
+});
+
+describe("desktop pinned notes", () => {
+	beforeEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("loads missing workspace config as an empty pin set", async () => {
+		const api = createDesktopApi();
+		api.readWorkspaceConfig.mockResolvedValue({ version: 1, pinnedNotes: [] });
+		const { openWorkspace, workspaceStore } = await loadStoreActions(api);
+
+		await openWorkspace("/workspace");
+
+		expect(api.readWorkspaceConfig).toHaveBeenCalledWith("/workspace");
+		expect(workspaceStore.get().pinnedNotes).toEqual([]);
+	});
+
+	it("loads persisted pins as absolute workspace paths", async () => {
+		const api = createDesktopApi();
+		api.readWorkspaceConfig.mockResolvedValue({
+			version: 1,
+			pinnedNotes: ["notes/a.md"],
+		});
+		const { openWorkspace, workspaceStore } = await loadStoreActions(api);
+
+		await openWorkspace("/workspace");
+
+		expect(workspaceStore.get().pinnedNotes).toEqual(["/workspace/notes/a.md"]);
+	});
+
+	it("pins and unpins notes through workspace config", async () => {
+		const api = createDesktopApi();
+		const { appStore, togglePinnedNote, workspaceStore } =
+			await loadStoreActions(api);
+
+		appStore.set((current) => ({
+			...current,
+			workspace: {
+				...current.workspace,
+				workspacePath: "/workspace",
+				files: [{ path: "/workspace/note.md", modified_at: 1 }],
+			},
+		}));
+
+		await togglePinnedNote("/workspace/note.md");
+		expect(workspaceStore.get().pinnedNotes).toEqual(["/workspace/note.md"]);
+		expect(api.writeWorkspaceConfig).toHaveBeenLastCalledWith("/workspace", {
+			version: 1,
+			pinnedNotes: ["note.md"],
+		});
+
+		await togglePinnedNote("/workspace/note.md");
+		expect(workspaceStore.get().pinnedNotes).toEqual([]);
+		expect(api.writeWorkspaceConfig).toHaveBeenLastCalledWith("/workspace", {
+			version: 1,
+			pinnedNotes: [],
+		});
 	});
 });

@@ -19,6 +19,13 @@ const desktopApi = {
 		ipcRenderer.invoke("desktop:list-directory", { path }),
 	listEmbedFiles: (workspacePath, glob) =>
 		ipcRenderer.invoke("desktop:embed-list-files", { workspacePath, glob }),
+	readWorkspaceConfig: (workspacePath) =>
+		ipcRenderer.invoke("desktop:read-workspace-config", { workspacePath }),
+	writeWorkspaceConfig: (workspacePath, config) =>
+		ipcRenderer.invoke("desktop:write-workspace-config", {
+			workspacePath,
+			config,
+		}),
 	readFileText: (path) =>
 		ipcRenderer.invoke("desktop:read-file-text", { path }),
 	writeFileText: (path, content) =>
