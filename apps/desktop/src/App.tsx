@@ -164,7 +164,10 @@ function App() {
 	}, [state.currentPath]);
 
 	const openFilePicker = useCallback(async () => {
-		const defaultPath = workspaceStore.get().workspacePath ?? undefined;
+		const defaultPath =
+			viewerStore.get().currentPath ??
+			workspaceStore.get().workspacePath ??
+			undefined;
 		const selected = await desktopApi.openFilePicker({ defaultPath });
 		if (typeof selected === "string") {
 			await loadPath(selected);
