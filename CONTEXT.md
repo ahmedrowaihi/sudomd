@@ -25,6 +25,16 @@ The on-disk realization of a [[Workspace]]: a folder containing the workspace co
 
 A folder open in the desktop app with **no** workspace configuration (no `.hubble/`). It is not a [[Workspace]]: the desktop app reads and edits it as a general markdown viewer, nothing syncs, and Workspace-scoped features (e.g. [[Embed]]s) do not resolve. Adding a configuration promotes it to a [[Workspace Folder]].
 
+### Folder
+
+A filesystem directory inside a [[Workspace Folder]] or [[Plain Folder]]. A Folder can contain zero or more [[Markdown File]]s and zero or more Folders.
+_Avoid_: Directory
+
+### Compacted Folder Path
+
+A single sidebar row that represents a chain of nested Folders where each Folder has exactly one child Folder and no sibling [[Markdown File]]s or Folders. Each segment in the row names one real Folder, and can be targeted independently for folder actions such as dragging or dropping.
+_Avoid_: Compacted directory name
+
 ### Cloud Sync
 
 The optional capability that binds a [[Workspace]] to a Convex deployment, enabling multi-device sync and web access. Required for web Workspaces; opt-in on desktop, where it can be enabled after a Workspace is created by supplying a Convex deployment URL. Whether Cloud Sync is on is orthogonal to whether a folder is a Workspace.
