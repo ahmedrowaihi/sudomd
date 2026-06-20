@@ -226,9 +226,48 @@ describe("desktop renameMarkdownFile", () => {
 			[
 				"[Target](../renamed.md)",
 				'[Titled](../renamed.md "caption")',
-				"![Image](../target.assets/image.png)",
+				"![Image](../renamed.assets/image.png)",
 				"[[renamed.md|Target]]",
 			].join("\n"),
+		);
+	});
+
+	it("renames the associated asset folder and updates refs", async () => {
+		const api = createDesktopApi();
+		api.readFileText.mockImplementation(async (path: string) => {
+			if (path === "/workspace/learning.md") {
+				return "![Recall](effective-learning-techniques.assets/recall.jpg)";
+			}
+			return "";
+		});
+		const { appStore, renameMarkdownFile } = await loadStoreActions(api);
+
+		appStore.set((current) => ({
+			...current,
+			workspace: {
+				...current.workspace,
+				workspacePath: "/workspace",
+				files: [
+					{
+						path: "/workspace/effective-learning-techniques.md",
+						modified_at: 1,
+					},
+				],
+			},
+		}));
+
+		await renameMarkdownFile(
+			"/workspace/effective-learning-techniques.md",
+			"learning",
+		);
+
+		expect(api.renameFile).toHaveBeenCalledWith(
+			"/workspace/effective-learning-techniques.assets",
+			"/workspace/learning.assets",
+		);
+		expect(api.writeFileText).toHaveBeenCalledWith(
+			"/workspace/learning.md",
+			"![Recall](learning.assets/recall.jpg)",
 		);
 	});
 
@@ -370,6 +409,40 @@ describe("desktop moveSidebarItem", () => {
 				"[External](https://example.com)",
 			].join("\n"),
 		);
+	});
+
+	it("moves the associated asset folder with a moved file", async () => {
+		const api = createDesktopApi();
+		api.readFileText.mockResolvedValue(
+			"![Recall](source.assets/recall-diagram.jpg)",
+		);
+		const { appStore, moveSidebarItem } = await loadStoreActions(api);
+
+		appStore.set((current) => ({
+			...current,
+			workspace: {
+				...current.workspace,
+				workspacePath: "/workspace",
+				files: [
+					{ path: "/workspace/samples/source.md", modified_at: 1 },
+					{
+						path: "/workspace/deeply/nested/folder/example.md",
+						modified_at: 1,
+					},
+				],
+			},
+		}));
+
+		await moveSidebarItem(
+			{ kind: "file", path: "/workspace/samples/source.md" },
+			"/workspace/deeply/nested/folder",
+		);
+
+		expect(api.renameFile).toHaveBeenCalledWith(
+			"/workspace/samples/source.assets",
+			"/workspace/deeply/nested/folder/source.assets",
+		);
+		expect(api.writeFileText).not.toHaveBeenCalled();
 	});
 
 	it("suffixes folder conflicts and rewrites descendants", async () => {

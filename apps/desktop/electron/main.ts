@@ -25,6 +25,7 @@ import type {
 } from "../src/desktopApi/types";
 import {
 	hasMarkdownExtension,
+	markdownAssetFolderPath,
 	withMarkdownExtension,
 } from "../src/lib/filePath";
 
@@ -652,9 +653,9 @@ function extensionFromImage(
 }
 
 function fileAssetsDir(filePath: string): string {
-	const parsed = path.parse(filePath);
-	if (!parsed.name) throw new Error(`Unable to resolve file name: ${filePath}`);
-	return path.join(parsed.dir, `${parsed.name}.assets`);
+	const assetsDir = markdownAssetFolderPath(filePath);
+	if (!assetsDir) throw new Error(`Unable to resolve file name: ${filePath}`);
+	return assetsDir;
 }
 
 async function collectMarkdownFiles(

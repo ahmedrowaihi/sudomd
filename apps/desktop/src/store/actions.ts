@@ -7,6 +7,7 @@ import {
 	dirname,
 	extname,
 	joinPath,
+	markdownAssetFolderPath,
 	pathEquals,
 	pathInFolder,
 	relativeWorkspacePath,
@@ -121,6 +122,28 @@ async function writeFileIfChanged(path: string, current: string, next: string) {
 	await desktopApi.writeFileText(path, next);
 	setViewerCleanContent(path, next);
 	return true;
+}
+
+async function moveAssociatedAssetFolder(
+	fromFilePath: string,
+	toFilePath: string,
+) {
+	const fromAssetFolder = markdownAssetFolderPath(fromFilePath);
+	const toAssetFolder = markdownAssetFolderPath(toFilePath);
+	if (
+		!fromAssetFolder ||
+		!toAssetFolder ||
+		pathEquals(fromAssetFolder, toAssetFolder)
+	) {
+		return null;
+	}
+	try {
+		await desktopApi.renameFile(fromAssetFolder, toAssetFolder);
+		return { fromPath: fromAssetFolder, toPath: toAssetFolder };
+	} catch (err) {
+		if (missingPathErrorPattern.test(errorMessage(err))) return null;
+		throw err;
+	}
 }
 
 /**
@@ -432,10 +455,10 @@ export async function renameMarkdownFile(path: string, nextName: string) {
 		}
 		pendingRenames.set(path, nextPath);
 		await desktopApi.renameFile(path, nextPath);
-		await updateMovedLinks(
-			[{ fromPath: path, toPath: nextPath }],
-			filesBeforeRename,
-		);
+		const movedAssetFolder = await moveAssociatedAssetFolder(path, nextPath);
+		const movedFiles = [{ fromPath: path, toPath: nextPath }];
+		if (movedAssetFolder) movedFiles.push(movedAssetFolder);
+		await updateMovedLinks(movedFiles, filesBeforeRename);
 		appStore.set((state) => ({
 			...state,
 			workspace: {
@@ -524,6 +547,10 @@ export async function moveSidebarItem(
 			await savePathContent(currentPath, current.content, { force: true });
 		}
 		await desktopApi.renameFile(sourcePath, nextPath);
+		const movedAssetFolder =
+			item.kind === "file"
+				? await moveAssociatedAssetFolder(sourcePath, nextPath)
+				: null;
 		appStore.set((state) => ({
 			...state,
 			workspace: {
@@ -558,6 +585,7 @@ export async function moveSidebarItem(
 					: null,
 			},
 		}));
+		if (movedAssetFolder) movedFiles.push(movedAssetFolder);
 		await updateMovedLinks(movedFiles, filesBeforeMove);
 		await syncPinnedNotes();
 		await refreshFiles();

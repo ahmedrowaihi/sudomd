@@ -97,11 +97,21 @@ export function movedMarkdownFiles(
 		}));
 }
 
-/** Returns a file's new path if it is one of the moved Markdown files. */
+/** Returns a path's new location if it is inside one of the moved paths. */
 export function pathAfterMove(path: string, movedByOldPath: MovedFileIndex) {
-	return (
-		movedByOldPath.get(normalizePath(path).toLocaleLowerCase())?.toPath ?? path
-	);
+	const normalizedPath = normalizePath(path);
+	const exactMove = movedByOldPath.get(normalizedPath.toLocaleLowerCase());
+	if (exactMove) return exactMove.toPath;
+	for (const movedPath of movedByOldPath.values()) {
+		const fromPath = normalizePath(movedPath.fromPath);
+		if (!pathInFolder(normalizedPath, fromPath)) continue;
+		return replacePathPrefix(
+			normalizedPath,
+			fromPath,
+			normalizePath(movedPath.toPath),
+		);
+	}
+	return path;
 }
 
 /** Re-bases a link inside a moved Markdown file from the file's new directory. */
@@ -130,13 +140,11 @@ function linkDestinationForMovedTarget(
 	if (!isLocalRelativeDestination(destination)) return destination;
 	const { path, suffix } = splitLinkDestination(destination);
 	const linkTarget = absoluteLinkPath(sourcePath, path);
-	const movedTarget = movedByOldPath.get(
-		normalizePath(linkTarget).toLocaleLowerCase(),
-	);
-	if (!movedTarget) return destination;
+	const nextTarget = pathAfterMove(linkTarget, movedByOldPath);
+	if (nextTarget === linkTarget) return destination;
 	const sourceDir = dirname(nextSourcePath);
 	if (!sourceDir) return destination;
-	return `${relativeLinkPath(sourceDir, movedTarget.toPath)}${suffix}`;
+	return `${relativeLinkPath(sourceDir, nextTarget)}${suffix}`;
 }
 
 /** Rewrites Markdown links, images, and HTML src/href destinations in one pass. */
