@@ -10,6 +10,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 ### Added
 
 ### Changed
+- Sidebar folders now reflect real workspace directories, including empty folders, while hiding Hubble-owned config and asset folders
 
 ### Fixed
 - App title now always shows Hubble instead of the starter template name
