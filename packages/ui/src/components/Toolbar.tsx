@@ -11,9 +11,10 @@ import MingcuteLayoutLeftLine from "~icons/mingcute/layout-left-line";
 import { fileNameFromPath } from "../lib/filePath";
 import { Button } from "../primitives/button";
 
-const TOOLBAR_INSET = isMac()
+const START_INSET = isMac()
 	? "var(--hubble-traffic-light-inset, 70px)"
 	: "8px";
+const END_INSET = isMac() ? "0px" : "138px";
 const ACTIONS_BASIS = "114px";
 const NO_DRAG_STYLE = {
 	WebkitAppRegion: "no-drag",
@@ -109,7 +110,7 @@ export function Toolbar({
 			<ToolbarActions>
 				<div
 					className="flex items-center gap-1"
-					style={{ paddingInlineStart: platformInset ? TOOLBAR_INSET : 0 }}
+					style={{ paddingInlineStart: platformInset ? START_INSET : 0 }}
 				>
 					{onToggleSidebar && (
 						<Button
@@ -160,7 +161,12 @@ export function Toolbar({
 				)}
 			</div>
 			<ToolbarActions>
-				<div className="flex items-center justify-end">{rightSlot}</div>
+				<div 
+					className="flex items-center justify-end"
+					style={{ paddingInlineEnd: platformInset ? END_INSET : 0 }}
+				>
+					{rightSlot}
+				</div>
 			</ToolbarActions>
 		</div>
 	);

@@ -923,6 +923,7 @@ async function createWindow() {
 		height: windowState.height,
 		show: false,
 		titleBarStyle: "hidden",
+		...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
 		trafficLightPosition: trafficLightPositionForZoom(zoomFactor),
 		webPreferences: {
 			contextIsolation: true,
