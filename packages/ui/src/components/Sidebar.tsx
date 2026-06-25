@@ -69,7 +69,12 @@ export type SidebarFocusedItem =
 
 type RenameItem =
 	| { kind: "file"; path: string }
-	| { kind: "folder"; path: string; displayPath: string };
+	| {
+			kind: "folder";
+			path: string;
+			displayPath: string;
+			parentDisplayPath: string;
+	  };
 
 const sidebarActionClass =
 	"flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-start text-[11px] font-normal outline-hidden select-none";
@@ -251,7 +256,12 @@ export function Sidebar({
 			const displayPath = normalizeDisplayPath(getDisplayPath(path));
 			const id = displayPath.endsWith("/") ? displayPath : `${displayPath}/`;
 			beginRename(
-				{ kind: "folder", path: id, displayPath },
+				{
+					kind: "folder",
+					path: id,
+					displayPath,
+					parentDisplayPath: dirname(displayPath),
+				},
 				fileNameFromPath(displayPath),
 				{
 					deleteOnUnchangedCancel: true,
@@ -273,7 +283,12 @@ export function Sidebar({
 				beginRename({ kind: "file", path: row.file.path }, row.label);
 			else if (row.kind === "folder" && onRenameFolder)
 				beginRename(
-					{ kind: "folder", path: row.id, displayPath: folderDisplayPath(row) },
+					{
+						kind: "folder",
+						path: row.id,
+						displayPath: folderDisplayPath(row),
+						parentDisplayPath: folderRenameParentDisplayPath(row),
+					},
 					row.label,
 				);
 			else if (row.kind === "section") return;
@@ -651,6 +666,8 @@ export function Sidebar({
 																		kind: "folder",
 																		path: row.id,
 																		displayPath: folderDisplayPath(row),
+																		parentDisplayPath:
+																			folderRenameParentDisplayPath(row),
 																	},
 																	value,
 																),
@@ -741,6 +758,8 @@ export function Sidebar({
 																			kind: "folder",
 																			path: id,
 																			displayPath: folderDisplayPath(row),
+																			parentDisplayPath:
+																				folderRenameParentDisplayPath(row),
 																		},
 																		label,
 																	)
@@ -1131,6 +1150,14 @@ function folderDisplayPath(row: Extract<SidebarRow, { kind: "folder" }>) {
 	const firstSegmentId = row.segments[0]?.id ?? row.id;
 	const parent = parentFolderId(firstSegmentId);
 	return normalizeDisplayPath(parent ? `${parent}${row.label}` : row.label);
+}
+
+function folderRenameParentDisplayPath(
+	row: Extract<SidebarRow, { kind: "folder" }>,
+) {
+	const firstSegmentId = row.segments[0]?.id ?? row.id;
+	const parent = parentFolderId(firstSegmentId);
+	return parent ? normalizeDisplayPath(parent).replace(/\/+$/, "") : "";
 }
 
 function rowDropGroup({
@@ -1709,7 +1736,10 @@ function renameTargetDisplayPath(
 	const sourceName = fileNameFromPath(sourceDisplayPath);
 	const { extension } =
 		item.kind === "file" ? splitFileName(sourceName) : { extension: "" };
-	const parent = dirname(sourceDisplayPath);
+	const parent =
+		item.kind === "folder"
+			? item.parentDisplayPath
+			: dirname(sourceDisplayPath);
 	const targetName = stripMatchingExtension(nextName.trim(), extension);
 	return normalizeDisplayPath(
 		parent
