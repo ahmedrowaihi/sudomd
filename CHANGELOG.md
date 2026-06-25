@@ -12,6 +12,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 ### Changed
 
 ### Fixed
+- The HTML Apps walkthrough video now loads in the packaged desktop dialog
 - New task-list items created with Enter now start unchecked
 
 ## [0.1.13] - 2026-06-24

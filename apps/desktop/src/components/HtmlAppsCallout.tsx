@@ -117,7 +117,7 @@ export function HtmlAppsDialog({
 				</div>
 				<video
 					className="w-full rounded-[12px]"
-					src="/html-apps-preview.mp4"
+					src="./html-apps-preview.mp4"
 					autoPlay
 					loop
 					muted
