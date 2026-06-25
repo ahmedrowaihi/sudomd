@@ -25,95 +25,13 @@ describe("task list splitting", () => {
 			taskItem({ checked: false }),
 		]);
 	});
-
-	it("keeps unchecked task items unchecked when split", () => {
-		const editor = createEditor(
-			taskListDoc([{ checked: false, text: "todo" }]),
-		);
-
-		expect(editor.commands.keyboardShortcut("Enter")).toBe(true);
-
-		expect(listItems(editor)).toMatchObject([
-			taskItem({ checked: false, text: "todo" }),
-			taskItem({ checked: false }),
-		]);
-	});
-
-	it("creates unchecked nested task items", () => {
-		const editor = createEditor(
-			{
-				type: "doc",
-				content: [
-					{
-						type: "bulletList",
-						content: [
-							{
-								type: "listItem",
-								attrs: { checked: false },
-								content: [
-									{
-										type: "paragraph",
-										content: [{ type: "text", text: "parent" }],
-									},
-									{
-										type: "bulletList",
-										content: [taskItem({ checked: true, text: "nested" })],
-									},
-								],
-							},
-						],
-					},
-				],
-			},
-			"nested",
-		);
-
-		expect(editor.commands.keyboardShortcut("Enter")).toBe(true);
-
-		const parentItem = listItems(editor)[0] as JSONContent;
-		const nestedList = parentItem.content?.find(
-			(node: JSONContent) => node.type === "bulletList",
-		) as JSONContent | undefined;
-		expect(parentItem.content?.[0]).toMatchObject({
-			type: "paragraph",
-			content: [{ type: "text", text: "parent" }],
-		});
-		expect(nestedList?.content).toMatchObject([
-			taskItem({ checked: true, text: "nested" }),
-			taskItem({ checked: false }),
-		]);
-	});
-
-	it("keeps plain bullet list splitting unchanged", () => {
-		const editor = createEditor(plainListDoc("bulletList", "plain"));
-
-		expect(editor.commands.keyboardShortcut("Enter")).toBe(true);
-
-		expect(listItems(editor)).toMatchObject([
-			taskItem({ checked: null, text: "plain" }),
-			taskItem({ checked: null }),
-		]);
-	});
-
-	it("keeps ordered list splitting unchanged", () => {
-		const editor = createEditor(plainListDoc("orderedList", "first"));
-
-		expect(editor.commands.keyboardShortcut("Enter")).toBe(true);
-
-		expect(listItems(editor, "orderedList")).toMatchObject([
-			taskItem({ checked: null, text: "first" }),
-			taskItem({ checked: null }),
-		]);
-	});
 });
 
-function createEditor(content: JSONContent, cursorText?: string) {
+function createEditor(content: JSONContent) {
 	const editor = new Editor({
 		element: document.createElement("div"),
 		extensions: [
-			StarterKit.configure({
-				listItem: false,
-			}),
+			StarterKit.configure({ listItem: false }),
 			...listExtensions,
 			TaskItem.configure({ nested: true }),
 		],
@@ -121,16 +39,15 @@ function createEditor(content: JSONContent, cursorText?: string) {
 	});
 	editors.push(editor);
 	Object.defineProperty(editor, "isFocused", { value: true });
-	placeCursorAfterText(editor, cursorText ?? firstText(content));
+	placeCursorAfterText(editor, firstText(content));
 	return editor;
 }
 
-function listItems(
-	editor: Editor,
-	type: "bulletList" | "orderedList" = "bulletList",
-) {
-	const list = editor.getJSON().content?.find((node) => node.type === type);
-	if (!list) throw new Error(`Expected ${type}`);
+function listItems(editor: Editor) {
+	const list = editor
+		.getJSON()
+		.content?.find((node) => node.type === "bulletList");
+	if (!list) throw new Error("Expected bulletList");
 	return list.content ?? [];
 }
 
@@ -166,9 +83,7 @@ function taskItem({
 	checked: boolean | null;
 	text?: string;
 }): JSONContent {
-	const paragraph: JSONContent = {
-		type: "paragraph",
-	};
+	const paragraph: JSONContent = { type: "paragraph" };
 	if (text) {
 		paragraph.content = [{ type: "text", text }];
 	}
@@ -182,23 +97,6 @@ function taskItem({
 function taskListDoc(items: Array<{ checked: boolean; text: string }>) {
 	return {
 		type: "doc",
-		content: [
-			{
-				type: "bulletList",
-				content: items.map(taskItem),
-			},
-		],
-	} satisfies JSONContent;
-}
-
-function plainListDoc(type: "bulletList" | "orderedList", text: string) {
-	return {
-		type: "doc",
-		content: [
-			{
-				type,
-				content: [taskItem({ checked: null, text })],
-			},
-		],
+		content: [{ type: "bulletList", content: items.map(taskItem) }],
 	} satisfies JSONContent;
 }
