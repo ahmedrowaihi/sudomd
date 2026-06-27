@@ -167,10 +167,6 @@ const ccLogo =
             <p class="sub">{sub}</p>
             <div class="cta">
               <a class="btn gold" href="https://github.com/bholmesdev/hubble.md/releases/latest" data-download>Download</a>
-              <span class="download-soon" data-download-soon hidden>
-                <span><span data-download-os>Windows</span> coming soon</span>
-                <span class="tip" tabindex="0" data-download-tip aria-label="It should be easy to bring Hubble to your platform. I just don't have a test environment set up yet. If you want to drive a release for your platform, get in the GitHub issues!">?</span>
-              </span>
               <a class="btn ghost" href="https://github.com/bholmesdev/hubble.md" target="_blank" rel="noopener">★ Star on GitHub</a>
             </div>
           </div>
@@ -653,34 +649,24 @@ const ccLogo =
     // Smart download targets based on your OS. Unknown directs to the release page.
     (async () => {
       const btn = document.querySelector<HTMLAnchorElement>("[data-download]");
-      const soon = document.querySelector<HTMLElement>("[data-download-soon]");
-      const osLabel = document.querySelector<HTMLElement>("[data-download-os]");
-      const tip = document.querySelector<HTMLElement>("[data-download-tip]");
-      if (!btn || !soon) return;
+      if (!btn) return;
 
       const ua = navigator.userAgent;
       const isMac = /Mac/i.test(ua) && !/iPhone|iPad|iPod/i.test(ua);
+      const isWindows = /Windows/i.test(ua);
       // Android UA also contains "Linux"; exclude it so phones don't get an AppImage.
       const isLinux = /Linux|X11|CrOS/i.test(ua) && !/Android/i.test(ua);
 
-      if (!isMac && !isLinux) {
-        const detected = /Windows/i.test(ua) ? "Windows" : null;
-        if (!detected) {
-          btn.href = "https://github.com/bholmesdev/hubble.md/releases";
-          return;
-        }
-        if (osLabel) osLabel.textContent = detected;
-        if (tip) tip.setAttribute("aria-label", `It should be easy to bring Hubble to ${detected}. I just don't have a test environment set up yet. If you want to drive a release for your platform, get in the GitHub issues!`);
-        btn.hidden = true;
-        soon.hidden = false;
+      if (!isMac && !isWindows && !isLinux) {
+        btn.href = "https://github.com/bholmesdev/hubble.md/releases";
         return;
       }
 
-      // Resolve the platform's installer (.dmg / .AppImage), arch-matched, with a 1h localStorage cache.
+      // Resolve the platform's installer (.dmg / .exe / .AppImage), arch-matched, with a 1h localStorage cache.
       // Anything failing leaves the releases/latest href intact.
       const REPO = "bholmesdev/hubble.md";
-      const ext = isMac ? ".dmg" : ".AppImage";
-      const KEY = isMac ? "hubble:dmg" : "hubble:appimage";
+      const ext = isMac ? ".dmg" : isWindows ? ".exe" : ".AppImage";
+      const KEY = isMac ? "hubble:dmg" : isWindows ? "hubble:win-nsis" : "hubble:appimage";
       const apply = (url: string) => { btn.href = url; };
       try { const c = JSON.parse(localStorage.getItem(KEY) || "null"); if (c && Date.now() - c.t < 3.6e6 && c.url) apply(c.url); } catch {}
       try {
@@ -689,7 +675,7 @@ const ccLogo =
         const { assets } = await r.json();
         const installers: { name: string; browser_download_url: string }[] = (assets || []).filter((a: any) => a.name?.endsWith(ext));
         if (!installers.length) return;
-        // Prefer the asset matching the device architecture when the hint is available; otherwise assume arm (Apple Silicon).
+        // Prefer the asset matching the device architecture when the hint is available; otherwise assume arm on macOS and x64 elsewhere.
         let preferArm = isMac;
         try {
           const uad = (navigator as any).userAgentData;
@@ -737,12 +723,6 @@ const ccLogo =
     .btn.gold:hover { transform:translateY(-3px); box-shadow:0 7px 0 rgba(23,61,46,.85); }
     .btn.gold:active { transform:translateY(2px); box-shadow:0 2px 0 rgba(23,61,46,.85); transition-duration:.09s; }
     .btn.ghost { border:1.5px solid var(--hero-line-strong); }
-    .download-soon { display:inline-flex; align-items:center; gap:.38rem; min-height:2.6rem; font-family:var(--font-rounded); font-weight:600; font-size:.95rem; color:rgba(23,61,46,.75); }
-    .tip { position:relative; display:inline-grid; place-items:center; width:1.15rem; height:1.15rem; border:1.5px solid var(--hero-line-strong); border-radius:var(--radius-pill); font-size:.76rem; line-height:1; cursor:help; color:var(--hero-ink); }
-    .tip::after { content:attr(aria-label); position:absolute; z-index:10; inset-block-end:calc(100% + .7rem); inset-inline-start:50%; width:min(260px,78vw); padding:.7rem .8rem; border-radius:var(--radius-control); background:var(--hero-ink); color:var(--hero-cream); box-shadow:var(--hero-popup-shadow); font-family:var(--font-body); font-weight:500; font-size:.82rem; line-height:1.35; text-align:start; transform:translate(-50%) translateY(4px); opacity:0; pointer-events:none; transition:opacity .16s ease, transform .16s ease; }
-    .tip::before { content:""; position:absolute; inset-block-end:calc(100% + .38rem); inset-inline-start:50%; border:.35rem solid transparent; border-block-start-color:var(--hero-ink); transform:translate(-50%) rotate(180deg); opacity:0; transition:opacity .16s ease; }
-    .tip:hover::after, .tip:focus-visible::after, .tip:hover::before, .tip:focus-visible::before { opacity:1; transform:translate(-50%) translateY(0); }
-    .tip:hover::before, .tip:focus-visible::before { transform:translate(-50%) rotate(180deg); }
     @media (prefers-reduced-motion:reduce) { .btn.gold { transition:none; } .btn.gold:hover, .btn.gold:active { transform:none; } }
 
     .visual { position:relative; min-width:0; }
