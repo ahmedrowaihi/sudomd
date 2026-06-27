@@ -46,7 +46,10 @@ export {
 	withMarkdownExtension,
 } from "./markdownPath";
 export { markdownToTiptapDoc } from "./markdownToProsemirror";
-export { tiptapDocToMarkdown } from "./prosemirrorToMarkdown";
+export {
+	selectionToMarkdown,
+	tiptapDocToMarkdown,
+} from "./prosemirrorToMarkdown";
 export { StoredMarksDecorationExtension } from "./StoredMarksDecorationExtension";
 export { StrikethroughShortcutExtension } from "./StrikethroughShortcutExtension";
 export {

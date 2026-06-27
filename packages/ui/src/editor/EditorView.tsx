@@ -25,6 +25,7 @@ import {
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CODE_BLOCK_COPY_EVENT, HubbleCodeBlock } from "./CodeBlockExtension";
+import { copySelectionAsMarkdown } from "./copyAsMarkdown";
 import { LinkClickExtension } from "./LinkClickExtension";
 import { LinkCreationGhostExtension } from "./LinkCreationGhostExtension";
 import { LinkPopover, type WikiTarget } from "./LinkPopover";
@@ -63,6 +64,7 @@ export type EditorViewProps = {
 	onLocalChange: (path: string, markdown: string) => void;
 	onSave: (path: string, markdown: string) => void | Promise<void>;
 	onScrollContainerChange?: (el: HTMLDivElement | null) => void;
+	copyAsMarkdownRequest?: number;
 	onOpenExternalLink: (href: string) => void | Promise<void>;
 	onOpenWikiLink: (target: string) => void | Promise<void>;
 	onMessage?: (message: string, type: "success" | "error") => void;
@@ -80,6 +82,7 @@ export function EditorView({
 	onLocalChange,
 	onSave,
 	onScrollContainerChange,
+	copyAsMarkdownRequest = 0,
 	onOpenExternalLink,
 	onOpenWikiLink,
 	onMessage,
@@ -102,6 +105,7 @@ export function EditorView({
 	const saveTimerRef = useRef<number | null>(null);
 	const editorRootRef = useRef<HTMLDivElement | null>(null);
 	const editorViewportRef = useRef<HTMLDivElement | null>(null);
+	const lastCopyAsMarkdownRequestRef = useRef(copyAsMarkdownRequest);
 	const [editorViewportEl, setEditorViewportEl] =
 		useState<HTMLDivElement | null>(null);
 	const [cursorModeOverride, setCursorModeOverride] =
@@ -251,6 +255,16 @@ export function EditorView({
 		return () =>
 			window.removeEventListener(CODE_BLOCK_COPY_EVENT, handleCopyMessage);
 	}, [onMessage]);
+
+	useEffect(() => {
+		if (!editor || copyAsMarkdownRequest === 0) return;
+		if (copyAsMarkdownRequest === lastCopyAsMarkdownRequestRef.current) return;
+		lastCopyAsMarkdownRequestRef.current = copyAsMarkdownRequest;
+		void copySelectionAsMarkdown({
+			editor,
+			onCopied: () => onMessage?.("Markdown copied", "success"),
+		});
+	}, [copyAsMarkdownRequest, editor, onMessage]);
 
 	return (
 		<div
