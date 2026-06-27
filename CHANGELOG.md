@@ -8,10 +8,16 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 ## [Unreleased]
 
 ### Added
-- Find text in the editor with highlighted matches and next/previous navigation
-- Sidebar rows can now be multi-selected and moved together
 
 ### Changed
+
+### Fixed
+
+## [0.1.16] - 2026-06-27
+
+### Added
+- Find text in the editor with highlighted matches and next/previous navigation
+- Sidebar rows can now be multi-selected and moved together
 
 ### Fixed
 - Editor word and character counts now reflect the selected text
