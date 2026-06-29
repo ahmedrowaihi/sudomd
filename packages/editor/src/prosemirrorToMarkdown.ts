@@ -213,6 +213,21 @@ function escapeWikiAlias(alias: string) {
 	return alias.split("|").join("\\|");
 }
 
+function wrapBoldText(text: string) {
+	const trailingWhitespaceMatch = text.match(/([ \t]+)$/);
+	if (!trailingWhitespaceMatch) {
+		return `**${text}**`;
+	}
+
+	const trailingWhitespace = trailingWhitespaceMatch[1];
+	const content = text.slice(0, -trailingWhitespace.length);
+	if (content.trim().length === 0) {
+		return `**${text}**`;
+	}
+
+	return `**${content}**${trailingWhitespace}`;
+}
+
 function nodeToMarkdown(node: JSONContent): string {
 	if (!node.type) return "";
 
@@ -229,7 +244,7 @@ function nodeToMarkdown(node: JSONContent): string {
 						text = `\`${text}\``;
 						break;
 					case "bold":
-						text = `**${text}**`;
+						text = wrapBoldText(text);
 						break;
 					case "italic":
 						text = `*${text}*`;

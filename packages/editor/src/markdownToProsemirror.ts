@@ -14,7 +14,9 @@ import { wikiDisplayNameForTarget } from "./markdownPath";
 
 // Convert Markdown (string) -> TipTap JSONContent (ProseMirror document)
 export function markdownToTiptapDoc(markdown: string): JSONContent {
-	const input = rawMarkdownAddEmptyMarkers(markdown);
+	const input = rawMarkdownAddEmptyMarkers(
+		normalizeLegacyBoldDelimiterWhitespace(markdown),
+	);
 	const processor = unified()
 		.use(remarkParse)
 		.use(remarkGfm)
@@ -30,6 +32,74 @@ export function markdownToTiptapDoc(markdown: string): JSONContent {
 function normalizeBlockContent(children: Content[]): Content[] {
 	// mdast root.children are already block-level. Return as-is for now.
 	return children;
+}
+
+const LEGACY_BOLD_TRAILING_WHITESPACE = /\*\*([^\n*]*?\S)([ \t]+)\*\*(?=\S)/g;
+const MARKDOWN_FENCE = /^[ \t]{0,3}(`{3,}|~{3,})/;
+
+function normalizeLegacyBoldDelimiterWhitespace(markdown: string) {
+	const lines = markdown.split("\n");
+	let openFence: string | null = null;
+
+	return lines
+		.map((line) => {
+			const fenceMatch = line.match(MARKDOWN_FENCE);
+			if (fenceMatch) {
+				const marker = fenceMatch[1];
+				if (!openFence) {
+					openFence = marker;
+				} else if (
+					marker[0] === openFence[0] &&
+					marker.length >= openFence.length
+				) {
+					openFence = null;
+				}
+				return line;
+			}
+
+			if (openFence) {
+				return line;
+			}
+
+			return normalizeLegacyBoldDelimiterWhitespaceInLine(line);
+		})
+		.join("\n");
+}
+
+function normalizeLegacyBoldDelimiterWhitespaceInLine(line: string) {
+	let result = "";
+	let cursor = 0;
+
+	while (cursor < line.length) {
+		const codeStart = line.indexOf("`", cursor);
+		if (codeStart === -1) {
+			result += line
+				.slice(cursor)
+				.replace(LEGACY_BOLD_TRAILING_WHITESPACE, "**$1**$2");
+			break;
+		}
+
+		result += line
+			.slice(cursor, codeStart)
+			.replace(LEGACY_BOLD_TRAILING_WHITESPACE, "**$1**$2");
+
+		let backtickEnd = codeStart;
+		while (line[backtickEnd] === "`") {
+			backtickEnd += 1;
+		}
+
+		const fence = line.slice(codeStart, backtickEnd);
+		const codeEnd = line.indexOf(fence, backtickEnd);
+		if (codeEnd === -1) {
+			result += line.slice(codeStart);
+			break;
+		}
+
+		result += line.slice(codeStart, codeEnd + fence.length);
+		cursor = codeEnd + fence.length;
+	}
+
+	return result;
 }
 
 function blockToPM(node: Content): JSONContent[] {

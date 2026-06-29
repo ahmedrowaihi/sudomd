@@ -13,6 +13,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
 ### Fixed
 
+- Bolded selections with trailing spaces now save and reopen with the bold boundary in the right place
+
 ## [0.1.16] - 2026-06-27
 
 ### Added
