@@ -37,6 +37,8 @@ function normalizeBlockContent(children: Content[]): Content[] {
 const LEGACY_BOLD_TRAILING_WHITESPACE = /\*\*([^\n*]*?\S)([ \t]+)\*\*(?=\S)/g;
 const MARKDOWN_FENCE = /^[ \t]{0,3}(`{3,}|~{3,})/;
 
+// Older Hubble builds could save invalid strong delimiters like `**bold **next`.
+// Normalize that exact legacy shape before parsing so existing notes reopen correctly.
 function normalizeLegacyBoldDelimiterWhitespace(markdown: string) {
 	const lines = markdown.split("\n");
 	let openFence: string | null = null;
