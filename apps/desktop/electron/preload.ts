@@ -115,8 +115,14 @@ const desktopApi = {
 		ipcRenderer.invoke("desktop:terminal-resize", { sessionId, cols, rows }),
 	terminalStop: (sessionId) =>
 		ipcRenderer.invoke("desktop:terminal-stop", { sessionId }),
-	onTerminalData: (sessionId, callback) =>
-		subscribe(`desktop:terminal-data-${sessionId}`, callback),
+	onTerminalData: (sessionId, callback) => {
+		const unsubscribe = subscribe(
+			`desktop:terminal-data-${sessionId}`,
+			callback,
+		);
+		void ipcRenderer.invoke("desktop:terminal-subscribe", { sessionId });
+		return unsubscribe;
+	},
 	onTerminalExit: (sessionId, callback) =>
 		subscribe(`desktop:terminal-exit-${sessionId}`, callback),
 } satisfies DesktopApi;

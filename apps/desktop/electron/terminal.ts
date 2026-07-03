@@ -4,6 +4,7 @@ import { ipcMain } from "electron";
 
 export type TerminalSession = {
 	id: string;
+	history: string;
 	write: (data: string) => void;
 	resize: (cols: number, rows: number) => void;
 	kill: () => void;
@@ -12,6 +13,11 @@ export type TerminalSession = {
 
 const sessions: Record<string, TerminalSession> = {};
 let nextSessionId = 0;
+const TERMINAL_HISTORY_LIMIT = 64_000;
+
+function appendHistory(session: TerminalSession, data: string) {
+	session.history = `${session.history}${data}`.slice(-TERMINAL_HISTORY_LIMIT);
+}
 
 function getDefaultShell() {
 	if (os.platform() === "win32") {
@@ -49,6 +55,7 @@ function createPtySession(
 
 		return {
 			id: "", // Assigned later
+			history: "",
 			write: (data: string) => {
 				ptyProcess.write(data);
 			},
@@ -111,6 +118,7 @@ function createFallbackSession(
 
 	return {
 		id: "",
+		history: "",
 		write: (data: string) => {
 			if (cp.stdin?.writable) {
 				cp.stdin.write(data);
@@ -133,8 +141,10 @@ export function setupTerminalIpc(
 		"desktop:terminal-start",
 		(_event, { cwd }: { cwd: string }) => {
 			const sessionId = `term-${++nextSessionId}`;
+			let session: TerminalSession | null = null;
 
 			const onData = (data: string) => {
+				if (session) appendHistory(session, data);
 				sendToRenderer(`desktop:terminal-data-${sessionId}`, data);
 			};
 
@@ -143,7 +153,7 @@ export function setupTerminalIpc(
 				sendToRenderer(`desktop:terminal-exit-${sessionId}`);
 			};
 
-			let session = createPtySession(cwd, onData, onExit);
+			session = createPtySession(cwd, onData, onExit);
 			if (!session) {
 				session = createFallbackSession(cwd, onData, onExit);
 			}
@@ -159,6 +169,16 @@ export function setupTerminalIpc(
 			}
 
 			return sessionId;
+		},
+	);
+
+	ipcMain.handle(
+		"desktop:terminal-subscribe",
+		(_event, { sessionId }: { sessionId: string }) => {
+			const session = sessions[sessionId];
+			if (session?.history) {
+				sendToRenderer(`desktop:terminal-data-${sessionId}`, session.history);
+			}
 		},
 	);
 
