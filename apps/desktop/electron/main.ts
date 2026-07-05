@@ -711,7 +711,7 @@ function buildMenu() {
 				{
 					id: "toggle-terminal",
 					label: "Toggle Terminal",
-					accelerator: "CmdOrCtrl+`",
+					accelerator: "CmdOrCtrl+J",
 					enabled: menuState.hasWorkspace,
 					click: () => sendToRenderer("desktop:menu-toggle-terminal"),
 				},
