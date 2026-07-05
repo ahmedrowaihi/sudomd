@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import os from "node:os";
+import path from "node:path";
 import { ipcMain } from "electron";
 
 export type TerminalSession = {
@@ -26,6 +28,28 @@ function getDefaultShell() {
 	return process.env.SHELL || "/bin/sh";
 }
 
+function ensureSpawnHelperExecutable() {
+	// pnpm can strip the exec bit from node-pty's macOS spawn-helper binary,
+	// which makes pty.spawn throw "posix_spawnp failed".
+	if (os.platform() !== "darwin") return;
+	try {
+		const packageRoot = path.dirname(
+			path.dirname(require.resolve("node-pty")),
+		);
+		for (const dir of [
+			path.join(packageRoot, "prebuilds", `darwin-${process.arch}`),
+			path.join(packageRoot, "build", "Release"),
+		]) {
+			const helper = path.join(dir, "spawn-helper");
+			if (fs.existsSync(helper)) {
+				fs.chmodSync(helper, 0o755);
+			}
+		}
+	} catch {
+		// Best effort; pty.spawn failures fall back to child_process below.
+	}
+}
+
 function createPtySession(
 	cwd: string,
 	onData: (data: string) => void,
@@ -35,6 +59,7 @@ function createPtySession(
 		// Attempt to load node-pty. It's an optional dependency, so it might fail.
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const pty = require("node-pty");
+		ensureSpawnHelperExecutable();
 		const shell = getDefaultShell();
 
 		const ptyProcess = pty.spawn(shell, [], {
