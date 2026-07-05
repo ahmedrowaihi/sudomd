@@ -30,6 +30,7 @@ import { LinkCreationGhostExtension } from "./LinkCreationGhostExtension";
 import { LinkPopover, type WikiTarget } from "./LinkPopover";
 import { SlashCommandMenu } from "./SlashCommandMenu";
 import { SmartLinkExtension } from "./SmartLinkExtension";
+import { TableCellSelectionExtension } from "./TableCellSelectionExtension";
 import { VirtualCursor } from "./VirtualCursor";
 import "./EditorView.css";
 import {
@@ -152,6 +153,7 @@ export function EditorView({
 			TableRow,
 			TableHeader,
 			TableCell,
+			TableCellSelectionExtension,
 		],
 		content: initialDoc,
 		onUpdate: ({ editor: current }) => {
