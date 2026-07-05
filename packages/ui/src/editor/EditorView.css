@@ -547,5 +547,5 @@
 [data-hubble-editor] .ProseMirror th {
 	background-color: var(--muted);
 	font-weight: 600;
-	text-align: left;
+	text-align: start;
 }
