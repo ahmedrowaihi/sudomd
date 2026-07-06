@@ -33,6 +33,7 @@ import {
 	markdownAssetFolderPath,
 	withMarkdownExtension,
 } from "../src/lib/filePath";
+import { setupTerminalIpc } from "./terminal";
 import {
 	loadZoomFactor,
 	resetWindowZoom,
@@ -706,6 +707,14 @@ function buildMenu() {
 					accelerator: "CmdOrCtrl+0",
 					click: () => resetWindowZoom(mainWindow),
 				},
+				{ type: "separator" },
+				{
+					id: "toggle-terminal",
+					label: "Toggle Terminal",
+					accelerator: "CmdOrCtrl+J",
+					enabled: menuState.hasWorkspace,
+					click: () => sendToRenderer("desktop:menu-toggle-terminal"),
+				},
 				...(isDev
 					? ([
 							{ type: "separator" },
@@ -1055,6 +1064,8 @@ async function createWindow() {
 }
 
 function registerIpc() {
+	setupTerminalIpc(sendToRenderer);
+
 	ipcMain.handle(
 		"desktop:list-directory",
 		async (_event, { path: dirPath }) => {

@@ -10,10 +10,15 @@ import { toast } from "sonner";
 import MingcuteCopy2Line from "~icons/mingcute/copy-2-line";
 import MingcuteFolderOpenLine from "~icons/mingcute/folder-open-line";
 import MingcuteMore2Line from "~icons/mingcute/more-2-line";
+import MingcuteTerminalLine from "~icons/mingcute/terminal-line";
 import { desktopApi } from "../desktopApi";
 import { copyText } from "../lib/clipboard";
 import { revealFileLabel } from "../lib/revealFile";
-import { renameCurrentMarkdownFile, toggleSidebar } from "../store/actions";
+import {
+	renameCurrentMarkdownFile,
+	toggleSidebar,
+	toggleTerminal,
+} from "../store/actions";
 import {
 	currentPathStore,
 	sidebarOpenStore,
@@ -59,9 +64,20 @@ export function Toolbar({
 				void renameCurrentMarkdownFile(nextName)
 			}
 			rightSlot={
-				workspacePath && currentPath ? (
-					<NoteActionsMenu path={currentPath} />
-				) : undefined
+				<div className="flex items-center gap-1">
+					<Button
+						variant="ghost"
+						size="icon-sm"
+						aria-label="Toggle terminal"
+						title="Toggle terminal"
+						onClick={toggleTerminal}
+					>
+						<MingcuteTerminalLine className="size-3.5" />
+					</Button>
+					{workspacePath && currentPath && (
+						<NoteActionsMenu path={currentPath} />
+					)}
+				</div>
 			}
 		/>
 	);
