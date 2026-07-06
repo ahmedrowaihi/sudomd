@@ -1,4 +1,6 @@
 import type { JSONContent } from "@tiptap/core";
+import type { Fragment } from "@tiptap/pm/model";
+import type { Selection } from "@tiptap/pm/state";
 import type { LinkAttrs } from "./Link";
 import { wikiDisplayNameForTarget } from "./markdownPath";
 
@@ -13,6 +15,16 @@ export function tiptapDocToMarkdown(doc: JSONContent): string {
 
 	const blocks = doc.content.map(blockToMarkdown);
 	return blocks.join("\n\n");
+}
+
+export function selectionToMarkdown(selection: Selection): string {
+	return fragmentToMarkdown(selection.content().content);
+}
+
+function fragmentToMarkdown(fragment: Fragment): string {
+	const content = fragment.toJSON();
+	if (!Array.isArray(content)) return "";
+	return tiptapDocToMarkdown({ type: "doc", content });
 }
 
 function blockToMarkdown(node: JSONContent): string {

@@ -100,6 +100,7 @@ function App() {
 	const [scrollContainerEl, setScrollContainerEl] =
 		useState<HTMLDivElement | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
+	const [copyAsMarkdownRequest, setCopyAsMarkdownRequest] = useState(0);
 	const [updateState, setUpdateState] = useState<DesktopUpdateState | null>(
 		null,
 	);
@@ -275,6 +276,9 @@ function App() {
 			desktopApi.onMenuOpenFile(() => void openFilePicker()),
 			desktopApi.onMenuOpenFolder(() => void openWorkspaceWithSidebar()),
 			desktopApi.onMenuOpenSettings(() => openSettings()),
+			desktopApi.onMenuCopyAsMarkdown(() =>
+				setCopyAsMarkdownRequest((request) => request + 1),
+			),
 			desktopApi.onMenuShowWorkspaceSwitcher(() =>
 				setWorkspaceSwitcherOpen(true),
 			),
@@ -389,6 +393,7 @@ function App() {
 								<DocumentViewer
 									path={state.currentPath}
 									content={state.content}
+									copyAsMarkdownRequest={copyAsMarkdownRequest}
 									onScrollContainerChange={setScrollContainerEl}
 								/>
 							</div>
@@ -437,10 +442,12 @@ function ChatAboutNoteSettingsSection() {
 function DocumentViewer({
 	path,
 	content,
+	copyAsMarkdownRequest,
 	onScrollContainerChange,
 }: {
 	path: string;
 	content: string;
+	copyAsMarkdownRequest: number;
 	onScrollContainerChange?: (el: HTMLDivElement | null) => void;
 }) {
 	if (hasHtmlExtension(path)) {
@@ -461,6 +468,7 @@ function DocumentViewer({
 			key={`${path}:${HMR_REV}`}
 			path={path}
 			initialMarkdown={content}
+			copyAsMarkdownRequest={copyAsMarkdownRequest}
 			onScrollContainerChange={onScrollContainerChange}
 		/>
 	);
@@ -538,10 +546,12 @@ function ExternalChangeBanner({
 function MarkdownEditor({
 	path,
 	initialMarkdown,
+	copyAsMarkdownRequest,
 	onScrollContainerChange,
 }: {
 	path: string;
 	initialMarkdown: string;
+	copyAsMarkdownRequest: number;
 	onScrollContainerChange?: (el: HTMLDivElement | null) => void;
 }) {
 	const workspace = useStoreValue(workspaceStore);
@@ -604,6 +614,7 @@ function MarkdownEditor({
 			onLocalChange={updateEditorContent}
 			onSave={savePathContent}
 			onScrollContainerChange={onScrollContainerChange}
+			copyAsMarkdownRequest={copyAsMarkdownRequest}
 			onOpenExternalLink={openExternalLink}
 			onOpenWikiLink={(target) =>
 				void loadPath(

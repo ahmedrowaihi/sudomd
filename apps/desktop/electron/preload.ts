@@ -101,6 +101,8 @@ const desktopApi = {
 		subscribe("desktop:menu-open-folder", callback),
 	onMenuOpenSettings: (callback) =>
 		subscribe("desktop:menu-open-settings", callback),
+	onMenuCopyAsMarkdown: (callback) =>
+		subscribe("desktop:menu-copy-as-markdown", callback),
 	onMenuShowWorkspaceSwitcher: (callback) =>
 		subscribe("desktop:menu-show-workspace-switcher", callback),
 	onMenuSyncWorkspace: (callback) =>

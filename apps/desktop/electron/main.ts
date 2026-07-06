@@ -647,24 +647,54 @@ function responseForAsset(filePath: string) {
 	});
 }
 
-type TextContextMenuItem = {
-	role: "cut" | "copy" | "paste" | "selectAll";
-	flag: keyof Electron.EditFlags;
-};
+type TextContextMenuItem =
+	| {
+			role: "cut" | "copy" | "paste" | "selectAll";
+			flag: keyof Electron.EditFlags;
+	  }
+	| {
+			id: "copy-as-markdown";
+			label: string;
+			accelerator?: string;
+			flag: keyof Electron.EditFlags;
+			click: (webContents: Electron.WebContents) => void;
+	  };
 
 const textContextMenuItems: TextContextMenuItem[] = [
 	{ role: "cut", flag: "canCut" },
 	{ role: "copy", flag: "canCopy" },
+	{
+		id: "copy-as-markdown",
+		label: "Copy as Markdown",
+		accelerator: "Alt+CmdOrCtrl+C",
+		flag: "canCopy",
+		click: (webContents) => {
+			webContents.send("desktop:menu-copy-as-markdown");
+		},
+	},
 	{ role: "paste", flag: "canPaste" },
 	{ role: "selectAll", flag: "canSelectAll" },
 ];
 
-function buildTextContextMenu(params: Electron.ContextMenuParams) {
+function buildTextContextMenu(
+	webContents: Electron.WebContents,
+	params: Electron.ContextMenuParams,
+) {
 	const template: Electron.MenuItemConstructorOptions[] =
-		textContextMenuItems.map((item) => ({
-			role: item.role,
-			enabled: params.editFlags[item.flag],
-		}));
+		textContextMenuItems.map((item) =>
+			"role" in item
+				? {
+						role: item.role,
+						enabled: params.editFlags[item.flag],
+					}
+				: {
+						id: item.id,
+						label: item.label,
+						accelerator: item.accelerator,
+						enabled: params.editFlags[item.flag],
+						click: () => item.click(webContents),
+					},
+		);
 
 	return Menu.buildFromTemplate(template);
 }
@@ -672,7 +702,7 @@ function buildTextContextMenu(params: Electron.ContextMenuParams) {
 function registerTextContextMenu(window: BrowserWindow) {
 	window.webContents.on("context-menu", (_event, params) => {
 		if (!params.isEditable) return;
-		buildTextContextMenu(params).popup({ window });
+		buildTextContextMenu(window.webContents, params).popup({ window });
 	});
 }
 
@@ -731,6 +761,12 @@ function buildMenu() {
 				{ type: "separator" },
 				{ role: "cut" },
 				{ role: "copy" },
+				{
+					id: "copy-as-markdown",
+					label: "Copy as Markdown",
+					accelerator: "Alt+CmdOrCtrl+C",
+					click: () => sendToRenderer("desktop:menu-copy-as-markdown"),
+				},
 				{ role: "paste" },
 				{ role: "selectAll" },
 			],
