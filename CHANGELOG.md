@@ -9,6 +9,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.1.17] - 2026-07-06
+
+### Added
+
 - Selecting text now shows a floating formatting toolbar for bold, italic, strikethrough, links, headings, lists, and quotes. Thanks [@hwong103](https://github.com/hwong103)! [#108](https://github.com/bholmesdev/hubble.md/issues/108)
 - Copy selected editor content as Markdown from the Edit menu or editor context menu. Thanks [@jambronner](https://github.com/jambronner)! [#122](https://github.com/bholmesdev/hubble.md/pull/122)
 - Terminal panel in the desktop app: toggle with Cmd+J to run shell commands in your workspace, with tabs, drag resize, and double click to rename. Thanks [@israelvf](https://github.com/israelvf)! [#131](https://github.com/bholmesdev/hubble.md/pull/131)
