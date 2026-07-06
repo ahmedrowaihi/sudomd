@@ -10,6 +10,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 ### Added
 
 - Edit a note's raw Markdown with source mode: toggle from the note's ⋯ menu or press Cmd+Option+U. [#144](https://github.com/bholmesdev/hubble.md/pull/144)
+- Dark mode: the desktop app, editor (including code-block syntax highlighting), and embedded HTML apps now follow your system appearance. [#110](https://github.com/bholmesdev/hubble.md/issues/110)
 
 ### Changed
 
