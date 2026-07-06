@@ -11,6 +11,12 @@ export type TerminalSession = {
 	kill: () => void;
 };
 
+type TerminalStartPayload = {
+	cwd: string;
+	notePath?: string;
+	initialCommand?: string;
+};
+
 const sessions: Record<string, TerminalSession> = {};
 let nextSessionId = 0;
 const TERMINAL_HISTORY_LIMIT = 64_000;
@@ -24,6 +30,13 @@ function getDefaultShell() {
 		return process.env.COMSPEC || "powershell.exe";
 	}
 	return process.env.SHELL || "/bin/sh";
+}
+
+function getTerminalEnv(notePath?: string) {
+	return {
+		...process.env,
+		...(notePath ? { HUBBLE_NOTE_PATH: notePath } : {}),
+	};
 }
 
 function ensureSpawnHelperExecutable() {
@@ -48,6 +61,7 @@ function ensureSpawnHelperExecutable() {
 
 function createPtySession(
 	cwd: string,
+	notePath: string | undefined,
 	onData: (data: string) => void,
 	onExit: () => void,
 ): TerminalSession | null {
@@ -65,7 +79,7 @@ function createPtySession(
 			cols: 80,
 			rows: 24,
 			cwd: cwd,
-			env: process.env,
+			env: getTerminalEnv(notePath),
 		});
 
 		ptyProcess.onData((data: string) => {
@@ -104,27 +118,48 @@ export function setupTerminalIpc(
 ) {
 	ipcMain.handle(
 		"desktop:terminal-start",
-		(_event, { cwd }: { cwd: string }) => {
+		(_event, { cwd, notePath, initialCommand }: TerminalStartPayload) => {
 			const sessionId = `term-${++nextSessionId}`;
 			let session: TerminalSession | null = null;
+			let initialCommandTimer: NodeJS.Timeout | null = null;
+			let didWriteInitialCommand = false;
+
+			const writeInitialCommand = () => {
+				if (!initialCommand || didWriteInitialCommand || !session) return;
+				didWriteInitialCommand = true;
+				if (initialCommandTimer) {
+					clearTimeout(initialCommandTimer);
+					initialCommandTimer = null;
+				}
+				session.write(`${initialCommand}\n`);
+			};
 
 			const onData = (data: string) => {
 				if (session) appendHistory(session, data);
 				sendToRenderer(`desktop:terminal-data-${sessionId}`, data);
+				writeInitialCommand();
 			};
 
 			const onExit = () => {
+				if (initialCommandTimer) {
+					clearTimeout(initialCommandTimer);
+					initialCommandTimer = null;
+				}
 				delete sessions[sessionId];
 				sendToRenderer(`desktop:terminal-exit-${sessionId}`);
 			};
 
-			session = createPtySession(cwd, onData, onExit);
+			session = createPtySession(cwd, notePath, onData, onExit);
 			if (!session) {
 				throw new Error("The bundled shell module (node-pty) failed to load.");
 			}
 
 			session.id = sessionId;
 			sessions[sessionId] = session;
+
+			if (initialCommand) {
+				initialCommandTimer = setTimeout(writeInitialCommand, 1200);
+			}
 
 			return sessionId;
 		},

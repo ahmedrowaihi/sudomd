@@ -23,9 +23,11 @@ import {
 	pathAfterMove,
 	rewriteMovedLinks,
 } from "../lib/markdownLinkRewrite";
+import { DEFAULT_CHAT_COMMAND } from "./settings";
 import {
 	applyFileAction,
 	appStore,
+	chatCommandStore,
 	cleanFileState,
 	emptyDoc,
 	type FileEntry,
@@ -34,6 +36,7 @@ import {
 	isInWorkspace,
 	LOADING_DELAY_MS,
 	MAX_RECENT,
+	pendingTerminalCommandStore,
 	type SortMode,
 	sidebarOpenStore,
 	switcherOpenStore,
@@ -370,6 +373,22 @@ export function setTerminalOpen(isOpen: boolean) {
 
 export function toggleTerminal() {
 	uiStore.select("isTerminalOpen").set((open) => !open);
+}
+
+export function setChatCommand(command: string) {
+	chatCommandStore.set(command);
+}
+
+export function requestChatAboutNote() {
+	const command = chatCommandStore.get().trim() || DEFAULT_CHAT_COMMAND;
+	// Set the command before opening so the panel's open effect can see it
+	// and defer to the chat launch instead of starting a plain session.
+	pendingTerminalCommandStore.set(command);
+	uiStore.select("isTerminalOpen").set(true);
+}
+
+export function clearPendingTerminalCommand() {
+	uiStore.set((state) => ({ ...state, pendingTerminalCommand: null }));
 }
 
 export function clearViewer() {

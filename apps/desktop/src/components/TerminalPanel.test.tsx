@@ -138,8 +138,9 @@ async function loadTerminalPanel(api: MockDesktopApi) {
 	});
 
 	const state = await import("../store/state");
+	const actions = await import("../store/actions");
 	const { TerminalPanel } = await import("./TerminalPanel");
-	return { ...state, TerminalPanel };
+	return { ...actions, ...state, TerminalPanel };
 }
 
 describe("TerminalPanel", () => {
@@ -183,7 +184,79 @@ describe("TerminalPanel", () => {
 			await flush();
 		});
 
-		expect(api.terminalStart).toHaveBeenCalledWith("/workspace-a");
+		expect(api.terminalStart).toHaveBeenCalledWith("/workspace-a", {});
+	});
+
+	it("starts one chat session with the pending command when opened", async () => {
+		const { api } = createDesktopApi();
+		const { appStore, requestChatAboutNote, setChatCommand, TerminalPanel } =
+			await loadTerminalPanel(api);
+
+		appStore.set((state) => ({
+			...state,
+			workspace: {
+				...state.workspace,
+				workspacePath: "/workspace-a",
+			},
+			document: {
+				...state.document,
+				currentPath: "/workspace-a/note.md",
+			},
+		}));
+		setChatCommand("claude --continue");
+		requestChatAboutNote();
+
+		await act(async () => {
+			root.render(<TerminalPanel />);
+			await flush();
+		});
+
+		expect(api.terminalStart).toHaveBeenCalledTimes(1);
+		expect(api.terminalStart).toHaveBeenCalledWith("/workspace-a", {
+			notePath: "/workspace-a/note.md",
+			initialCommand: "claude --continue",
+		});
+		expect(api.terminalWrite).not.toHaveBeenCalled();
+		expect(getSessionButtons(container)[0]?.textContent).toBe("claude");
+		expect(appStore.get().ui.pendingTerminalCommand).toBeNull();
+	});
+
+	it("starts one chat session when requested after the panel has mounted closed", async () => {
+		const { api } = createDesktopApi();
+		const { appStore, requestChatAboutNote, setChatCommand, TerminalPanel } =
+			await loadTerminalPanel(api);
+
+		appStore.set((state) => ({
+			...state,
+			workspace: {
+				...state.workspace,
+				workspacePath: "/workspace-a",
+			},
+			document: {
+				...state.document,
+				currentPath: "/workspace-a/note.md",
+			},
+		}));
+		setChatCommand("claude --continue");
+
+		await act(async () => {
+			root.render(<TerminalPanel />);
+			await flush();
+		});
+		expect(api.terminalStart).not.toHaveBeenCalled();
+
+		await act(async () => {
+			requestChatAboutNote();
+			await flush();
+		});
+
+		expect(api.terminalStart).toHaveBeenCalledTimes(1);
+		expect(api.terminalStart).toHaveBeenCalledWith("/workspace-a", {
+			notePath: "/workspace-a/note.md",
+			initialCommand: "claude --continue",
+		});
+		expect(getSessionButtons(container)[0]?.textContent).toBe("claude");
+		expect(appStore.get().ui.pendingTerminalCommand).toBeNull();
 	});
 
 	it("shows an error state when the shell backend fails to load", async () => {
@@ -244,7 +317,7 @@ describe("TerminalPanel", () => {
 			root.render(<TerminalPanel />);
 			await flush();
 		});
-		expect(api.terminalStart).toHaveBeenNthCalledWith(1, "/workspace-a");
+		expect(api.terminalStart).toHaveBeenNthCalledWith(1, "/workspace-a", {});
 
 		// Switch workspaces while the first shell is still starting.
 		await act(async () => {
@@ -264,7 +337,7 @@ describe("TerminalPanel", () => {
 		});
 
 		expect(api.terminalStop).toHaveBeenCalledWith("term-stale");
-		expect(api.terminalStart).toHaveBeenNthCalledWith(2, "/workspace-b");
+		expect(api.terminalStart).toHaveBeenNthCalledWith(2, "/workspace-b", {});
 		const sessionTitles = getSessionButtons(container).map(
 			(button) => button.textContent,
 		);
@@ -293,7 +366,7 @@ describe("TerminalPanel", () => {
 			await flush();
 		});
 
-		expect(api.terminalStart).toHaveBeenNthCalledWith(1, "/workspace-a");
+		expect(api.terminalStart).toHaveBeenNthCalledWith(1, "/workspace-a", {});
 
 		await act(async () => {
 			appStore.set((state) => ({
@@ -307,7 +380,7 @@ describe("TerminalPanel", () => {
 		});
 
 		expect(api.terminalStop).toHaveBeenCalledWith("term-1");
-		expect(api.terminalStart).toHaveBeenNthCalledWith(2, "/workspace-b");
+		expect(api.terminalStart).toHaveBeenNthCalledWith(2, "/workspace-b", {});
 
 		// Late exit events from the old workspace should be harmless after reset.
 		await act(async () => {
@@ -375,8 +448,8 @@ describe("TerminalPanel", () => {
 			await flush();
 		});
 
-		expect(api.terminalStart).toHaveBeenNthCalledWith(1, "/workspace-a");
-		expect(api.terminalStart).toHaveBeenNthCalledWith(2, "/workspace-a");
+		expect(api.terminalStart).toHaveBeenNthCalledWith(1, "/workspace-a", {});
+		expect(api.terminalStart).toHaveBeenNthCalledWith(2, "/workspace-a", {});
 		expect(getSessionButtons(container)).toHaveLength(2);
 		expect(getSessionButtons(container)[1]?.getAttribute("aria-pressed")).toBe(
 			"true",

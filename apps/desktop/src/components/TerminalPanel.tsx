@@ -5,8 +5,17 @@ import { Terminal } from "@xterm/xterm";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { desktopApi } from "../desktopApi";
 import { cn } from "../lib/utils";
-import { setTerminalOpen, toggleTerminal } from "../store/actions";
-import { terminalOpenStore, workspacePathStore } from "../store/state";
+import {
+	clearPendingTerminalCommand,
+	setTerminalOpen,
+	toggleTerminal,
+} from "../store/actions";
+import {
+	pendingTerminalCommandStore,
+	terminalOpenStore,
+	viewerStore,
+	workspacePathStore,
+} from "../store/state";
 import "@xterm/xterm/css/xterm.css";
 import MingcuteAddLine from "~icons/mingcute/add-line";
 import MingcuteCloseLine from "~icons/mingcute/close-line";
@@ -154,6 +163,7 @@ const DARK_THEME = {
 export function TerminalPanel() {
 	const isOpen = useStoreValue(terminalOpenStore);
 	const workspacePath = useStoreValue(workspacePathStore);
+	const pendingTerminalCommand = useStoreValue(pendingTerminalCommandStore);
 	const [{ sessions, activeSessionId }, dispatch] = useReducer(
 		terminalStateReducer,
 		EMPTY_TERMINAL_STATE,
@@ -219,33 +229,53 @@ export function TerminalPanel() {
 		);
 	}, [sessions, workspacePath]);
 
-	// Create a new session when the panel is opened and there are no sessions
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+	// Start sessions while the panel is open: a pending chat command gets its
+	// own tab; otherwise an empty panel boots a plain shell. sessions.length
+	// retries a chat launch that arrived while another session was starting.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: startSession is render-local
 	useEffect(() => {
-		if (
-			isOpen &&
-			sessions.length === 0 &&
-			workspacePath &&
-			!isInitializingRef.current
-		) {
-			isInitializingRef.current = true;
-			void handleNewSession();
-		}
-	}, [isOpen, sessions.length, workspacePath]);
+		if (!isOpen || !workspacePath || isInitializingRef.current) return;
+		if (!pendingTerminalCommand && sessions.length > 0) return;
 
-	const handleNewSession = async () => {
+		isInitializingRef.current = true;
+		void (async () => {
+			try {
+				if (pendingTerminalCommand) {
+					await startSession(
+						pendingTerminalCommand.split(/\s+/, 1)[0] || "chat",
+						{ initialCommand: pendingTerminalCommand },
+					);
+					clearPendingTerminalCommand();
+				} else {
+					await startSession("bash");
+				}
+			} finally {
+				isInitializingRef.current = false;
+			}
+		})();
+	}, [isOpen, pendingTerminalCommand, workspacePath, sessions.length]);
+
+	const startSession = async (
+		title: string,
+		options: { initialCommand?: string } = {},
+	) => {
 		setStartError(null);
 		try {
 			while (true) {
 				const requestedWorkspacePath = workspacePathStore.get();
 				if (!requestedWorkspacePath) return;
+				const notePath = viewerStore.get().currentPath ?? undefined;
 				const sessionId = await desktopApi.terminalStart(
 					requestedWorkspacePath,
+					{
+						...(notePath ? { notePath } : {}),
+						...options,
+					},
 				);
 				if (workspacePathStore.get() === requestedWorkspacePath) {
 					dispatch({
 						type: "add",
-						session: { id: sessionId, title: "bash" },
+						session: { id: sessionId, title },
 					});
 					return;
 				}
@@ -259,8 +289,6 @@ export function TerminalPanel() {
 			setStartError(
 				"Terminal unavailable. The bundled shell module failed to load.",
 			);
-		} finally {
-			isInitializingRef.current = false;
 		}
 	};
 
@@ -374,7 +402,7 @@ export function TerminalPanel() {
 					<button
 						type="button"
 						className="p-1 ml-1 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-						onClick={handleNewSession}
+						onClick={() => void startSession("bash")}
 						title="New Terminal"
 					>
 						<MingcuteAddLine className="w-4 h-4" />

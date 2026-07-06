@@ -16,6 +16,7 @@ import { copyText } from "../lib/clipboard";
 import { revealFileLabel } from "../lib/revealFile";
 import {
 	renameCurrentMarkdownFile,
+	requestChatAboutNote,
 	toggleSidebar,
 	toggleTerminal,
 } from "../store/actions";
@@ -113,6 +114,14 @@ function NoteActionsMenu({ path }: { path: string }) {
 			<Menu.Portal>
 				<Menu.Positioner align="end" side="bottom" sideOffset={4}>
 					<Menu.Popup className="z-50 w-44 origin-(--transform-origin) rounded-sm border border-border bg-popover p-1 text-[11px] text-popover-foreground outline-hidden transition-[transform,opacity] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+						<Menu.Item
+							className="flex w-full cursor-pointer items-center gap-2 rounded-sm [padding-block:0.375rem] [padding-inline:0.5rem] text-start text-[11px] outline-hidden select-none data-highlighted:bg-accent"
+							onClick={requestChatAboutNote}
+						>
+							<MingcuteTerminalLine className="size-3 shrink-0" />
+							<span className="min-w-0 flex-1">Chat about this note</span>
+							<ShortcutHint>⌘⇧J</ShortcutHint>
+						</Menu.Item>
 						<Menu.Item
 							className="flex w-full cursor-pointer items-center gap-2 rounded-sm [padding-block:0.375rem] [padding-inline:0.5rem] text-start text-[11px] outline-hidden select-none data-highlighted:bg-accent"
 							onClick={() => void revealFile()}

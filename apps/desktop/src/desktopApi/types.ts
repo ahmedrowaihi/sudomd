@@ -58,6 +58,11 @@ export type DesktopUpdateState = {
 
 export type DesktopPlatform = NodeJS.Platform;
 
+export type TerminalStartOptions = {
+	notePath?: string;
+	initialCommand?: string;
+};
+
 export type WorkspaceConfig = {
 	version: 1;
 	pinnedNotes: string[];
@@ -127,7 +132,7 @@ export type DesktopApi = {
 	onFullScreenChange(callback: (isFullScreen: boolean) => void): Unsubscribe;
 
 	// Terminal
-	terminalStart(cwd: string): Promise<string>;
+	terminalStart(cwd: string, options?: TerminalStartOptions): Promise<string>;
 	terminalWrite(sessionId: string, data: string): Promise<void>;
 	terminalResize(sessionId: string, cols: number, rows: number): Promise<void>;
 	terminalStop(sessionId: string): Promise<void>;

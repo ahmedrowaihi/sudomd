@@ -110,7 +110,8 @@ const desktopApi = {
 		subscribe("desktop:fullscreen-change", (isFullScreen: boolean) =>
 			callback(isFullScreen),
 		),
-	terminalStart: (cwd) => ipcRenderer.invoke("desktop:terminal-start", { cwd }),
+	terminalStart: (cwd, options) =>
+		ipcRenderer.invoke("desktop:terminal-start", { cwd, ...options }),
 	terminalWrite: (sessionId, data) =>
 		ipcRenderer.invoke("desktop:terminal-write", { sessionId, data }),
 	terminalResize: (sessionId, cols, rows) =>
