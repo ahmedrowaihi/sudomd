@@ -310,7 +310,7 @@ export function SelectionFormattingToolbar({
 		editorDom.addEventListener("pointerdown", handlePointerDown);
 		// The drag can end outside the editor, so listen on window.
 		window.addEventListener("pointerup", handlePointerUp);
-		window.addEventListener("keydown", handleKeyDown);
+		editorDom.addEventListener("keydown", handleKeyDown, true);
 		viewport?.addEventListener("scroll", handleUpdate, { passive: true });
 		window.addEventListener("resize", handleUpdate);
 
@@ -323,7 +323,7 @@ export function SelectionFormattingToolbar({
 			editor.off("blur", handleUpdate);
 			editorDom.removeEventListener("pointerdown", handlePointerDown);
 			window.removeEventListener("pointerup", handlePointerUp);
-			window.removeEventListener("keydown", handleKeyDown);
+			editorDom.removeEventListener("keydown", handleKeyDown, true);
 			viewport?.removeEventListener("scroll", handleUpdate);
 			window.removeEventListener("resize", handleUpdate);
 		};
