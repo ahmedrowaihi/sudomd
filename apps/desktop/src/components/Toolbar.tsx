@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import MingcuteCopy2Line from "~icons/mingcute/copy-2-line";
 import MingcuteFolderOpenLine from "~icons/mingcute/folder-open-line";
 import MingcuteMore2Line from "~icons/mingcute/more-2-line";
-import MingcuteTerminalBoxLine from "~icons/mingcute/terminal-box-line";
+import MingcuteTerminalLine from "~icons/mingcute/terminal-line";
 import { desktopApi } from "../desktopApi";
 import { copyText } from "../lib/clipboard";
 import { revealFileLabel } from "../lib/revealFile";
@@ -72,7 +72,7 @@ export function Toolbar({
 						title="Toggle terminal"
 						onClick={toggleTerminal}
 					>
-						<MingcuteTerminalBoxLine className="size-4" />
+						<MingcuteTerminalLine className="size-3.5" />
 					</Button>
 					{workspacePath && currentPath && (
 						<NoteActionsMenu path={currentPath} />
