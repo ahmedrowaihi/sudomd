@@ -166,7 +166,7 @@ function joinPath(baseDir: string, relativePath: string): string {
 }
 
 function isResolvableLocalPath(src: string): boolean {
-	return !/^(data:|https?:|file:|asset:|hubble-asset:)/i.test(src);
+	return !/^(data:|https?:|file:|asset:|sudomd-asset:)/i.test(src);
 }
 
 function safeDecodeUriComponent(value: string): string {

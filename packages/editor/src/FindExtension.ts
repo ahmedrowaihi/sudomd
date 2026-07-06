@@ -27,7 +27,7 @@ type TextIndex = {
 	text: string;
 };
 
-export const findPluginKey = new PluginKey<FindState>("hubbleFind");
+export const findPluginKey = new PluginKey<FindState>("sudomdFind");
 
 export const FindExtension = Extension.create({
 	name: "find",

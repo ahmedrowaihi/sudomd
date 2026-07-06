@@ -9,7 +9,7 @@ Replace Tauri with Electron in `apps/desktop` while preserving the desktop featu
 - Add Electron, Electron Vite, electron-builder, chokidar, and needed type packages to `apps/desktop`.
 - Replace Tauri scripts:
   - `pnpm dev:desktop` runs normal Electron dev.
-  - `pnpm dev:desktop:debug` runs Electron dev with `HUBBLE_DESKTOP_DEBUG_PORT` defaulting to `9222`.
+  - `pnpm dev:desktop:debug` runs Electron dev with `SUDOMD_DESKTOP_DEBUG_PORT` defaulting to `9222`.
   - `pnpm build:desktop` builds renderer, preload, and main, then runs checks.
   - `pnpm bundle:desktop` creates the macOS Electron bundle.
 - Keep `apps/desktop` as the package path and app identity.
@@ -76,7 +76,7 @@ Replace Tauri with Electron in `apps/desktop` while preserving the desktop featu
 - `pnpm check`
 - `pnpm build:desktop`
 - `pnpm dev:desktop`
-- `pnpm dev:desktop:debug`, then connect Chrome DevTools MCP to `http://127.0.0.1:$HUBBLE_DESKTOP_DEBUG_PORT`
+- `pnpm dev:desktop:debug`, then connect Chrome DevTools MCP to `http://127.0.0.1:$SUDOMD_DESKTOP_DEBUG_PORT`
 - Manual desktop smoke test:
   - open a Workspace Folder
   - open a Plain Folder

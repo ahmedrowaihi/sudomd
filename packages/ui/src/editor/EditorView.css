@@ -14,7 +14,9 @@
 }
 
 [data-hubble-editor] .ProseMirror {
-	--editor-gap: 0.75em;
+	--editor-gap: 0.5em;
+	--editor-heading-gap: 0.35em;
+	--editor-section-gap: 0.9em;
 	--editor-list-gap: 0.25em;
 
 	inline-size: 100%;
@@ -43,21 +45,33 @@
 	margin-block-start: var(--editor-gap);
 }
 
-[data-hubble-editor] .ProseMirror > * + :is(h1, h2, h3, h4, h5, h6) {
-	margin-block-start: 1.3em;
+[data-hubble-editor] .ProseMirror > .react-renderer.node-codeBlock {
+	margin-block: var(--editor-gap);
 }
 
-/* Restore flow inside containers whose child margins are reset above. */
-[data-hubble-editor]
-	.ProseMirror
-	:is(blockquote, li, td, th)
-	:is(p, ul, ol, blockquote, pre)
-	+ :is(p, ul, ol, blockquote, pre) {
+[data-hubble-editor] .ProseMirror > * + .react-renderer.node-codeBlock,
+[data-hubble-editor] .ProseMirror > .react-renderer.node-codeBlock + * {
 	margin-block-start: var(--editor-gap);
 }
 
-[data-hubble-editor] .ProseMirror > .react-renderer.node-codeBlock {
-	margin-block: var(--editor-gap);
+/*
+ * Semantic gaps below override the default. All have equal specificity, so
+ * source order resolves overlaps — keep section/list rules last.
+ */
+
+/* A heading starts a new section: roomy above. */
+[data-hubble-editor] .ProseMirror > * + :is(h1, h2, h3, h4, h5, h6) {
+	margin-block-start: var(--editor-section-gap);
+}
+
+/* A heading introduces what follows: tight below. */
+[data-hubble-editor] .ProseMirror > :is(h1, h2, h3, h4, h5, h6) + * {
+	margin-block-start: var(--editor-heading-gap);
+}
+
+/* A list needs trailing breathing room before any following block. */
+[data-hubble-editor] .ProseMirror > :is(ul, ol) + * {
+	margin-block-start: var(--editor-section-gap);
 }
 
 [data-hubble-editor] .ProseMirror h1 {
@@ -200,7 +214,7 @@
 [data-hubble-editor] .pm-task-checkbox > input:checked + .pm-task-checkbox-box {
 	background: var(--brand);
 	border-color: var(--brand);
-	animation: hubble-task-check-pop 180ms var(--ease-snappy);
+	animation: sudomd-task-check-pop 180ms var(--ease-snappy);
 }
 
 [data-hubble-editor]
@@ -221,7 +235,7 @@
 	outline-offset: 2px;
 }
 
-@keyframes hubble-task-check-pop {
+@keyframes sudomd-task-check-pop {
 	0% {
 		transform: scale(0.85);
 	}
@@ -294,6 +308,68 @@
 	position: relative;
 }
 
+[data-hubble-editor] .pm-mermaid-preview {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	padding: 1rem;
+	margin-block-start: 0.25rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md, 0.5rem);
+	background: var(--card);
+	overflow-x: auto;
+}
+
+[data-hubble-editor] .pm-mermaid-controls {
+	position: absolute;
+	z-index: 1;
+	inset-block-start: 0.45rem;
+	inset-inline-end: 0.45rem;
+	display: flex;
+	align-items: center;
+	gap: 0.15rem;
+	opacity: 0;
+	transition: opacity 160ms var(--ease-snappy);
+}
+
+[data-hubble-editor] .pm-mermaid-preview:hover .pm-mermaid-controls {
+	opacity: 1;
+}
+
+[data-hubble-editor] .pm-mermaid-svg {
+	width: 100%;
+}
+
+/* Full-screen dialog: let the diagram grow to fit the large area rather than
+   stretching to the container width like the inline preview does. */
+.pm-mermaid-fullscreen-svg svg {
+	width: auto !important;
+	max-width: 100% !important;
+	height: auto;
+	max-height: 100%;
+}
+
+/* Mermaid stamps an inline max-width equal to the diagram's natural (often
+   tiny) size; override it so the diagram scales up to the block width. */
+[data-hubble-editor] .pm-mermaid-svg svg {
+	width: 100% !important;
+	max-width: 100% !important;
+	height: auto;
+}
+
+[data-hubble-editor] .pm-mermaid-empty {
+	color: var(--muted-foreground);
+	font-size: 0.8rem;
+}
+
+[data-hubble-editor] .pm-mermaid-error {
+	margin: 0;
+	color: var(--destructive);
+	font-size: 0.8rem;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
 [data-hubble-editor] .pm-code-block-controls {
 	position: absolute;
 	z-index: 1;
@@ -357,6 +433,7 @@
 }
 
 [data-hubble-editor]
+	[data-hubble-editor]
 	.react-renderer.node-codeBlock:hover
 	.pm-code-block-controls {
 	opacity: 1;
@@ -615,7 +692,7 @@
 	background: var(--muted);
 	color: var(--muted-foreground);
 	font-size: 0.8125rem;
-	animation: hubble-image-upload-fade-in 220ms ease-out both;
+	animation: sudomd-image-upload-fade-in 220ms ease-out both;
 }
 
 [data-hubble-editor] .pm-image-upload-placeholder-shimmer {
@@ -629,17 +706,17 @@
 		color-mix(in oklab, var(--background) 72%, transparent),
 		transparent
 	);
-	animation: hubble-image-upload-shimmer 1.3s ease-in-out infinite;
+	animation: sudomd-image-upload-shimmer 1.3s ease-in-out infinite;
 }
 
 [data-hubble-editor] .pm-image-upload-spinner {
 	position: relative;
 	inline-size: 1.5rem;
 	block-size: 1.5rem;
-	animation: hubble-image-upload-spin 900ms linear infinite;
+	animation: sudomd-image-upload-spin 900ms linear infinite;
 }
 
-@keyframes hubble-image-upload-fade-in {
+@keyframes sudomd-image-upload-fade-in {
 	from {
 		opacity: 0;
 		transform: translateY(2px);
@@ -650,64 +727,78 @@
 	}
 }
 
-@keyframes hubble-image-upload-spin {
+@keyframes sudomd-image-upload-spin {
 	to {
 		transform: rotate(1turn);
 	}
 }
 
-@keyframes hubble-image-upload-shimmer {
+@keyframes sudomd-image-upload-shimmer {
 	to {
 		inset-inline-start: 100%;
 	}
 }
 
-[data-hubble-editor] .ProseMirror table {
-	border-collapse: separate;
-	border-spacing: 0;
-	border-radius: var(--radius);
+[data-hubble-editor] .tableWrapper {
+	overflow-x: auto;
+	margin-block: 0.75rem;
+}
+
+[data-hubble-editor] table {
+	border-collapse: collapse;
 	table-layout: fixed;
-	inline-size: 100%;
-	margin-block: var(--editor-gap);
+	width: 100%;
+	margin: 0;
 	overflow: hidden;
 }
 
-[data-hubble-editor] .ProseMirror td,
-[data-hubble-editor] .ProseMirror th {
-	min-inline-size: 1em;
+[data-hubble-editor] table td,
+[data-hubble-editor] table th {
+	position: relative;
+	min-width: 4rem;
 	border: 1px solid var(--border);
-	padding: 0.5rem 0.75rem;
+	padding: 0.375rem 0.5rem;
 	vertical-align: top;
 	box-sizing: border-box;
-	position: relative;
 }
 
-[data-hubble-editor] .ProseMirror tr:not(:first-child) :is(td, th) {
-	border-block-start: 0;
-}
-
-[data-hubble-editor] .ProseMirror :is(td, th):not(:first-child) {
-	border-inline-start: 0;
-}
-
-[data-hubble-editor] .ProseMirror tr:first-child :is(td, th):first-child {
-	border-start-start-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror tr:first-child :is(td, th):last-child {
-	border-start-end-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror tr:last-child :is(td, th):first-child {
-	border-end-start-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror tr:last-child :is(td, th):last-child {
-	border-end-end-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror th {
-	background-color: var(--muted);
+[data-hubble-editor] table th {
+	background: var(--muted);
 	font-weight: 600;
 	text-align: start;
+}
+
+[data-hubble-editor] table td > *,
+[data-hubble-editor] table th > * {
+	margin: 0;
+}
+
+[data-hubble-editor] table .selectedCell::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: color-mix(in oklab, var(--primary) 18%, transparent);
+	pointer-events: none;
+}
+
+[data-hubble-editor] table .column-resize-handle {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-end: -2px;
+	width: 4px;
+	background: var(--primary);
+	cursor: col-resize;
+}
+
+[data-hubble-editor] .resize-cursor {
+	cursor: col-resize;
+}
+
+[data-hubble-editor] .ProseMirror mark {
+	background: color-mix(in oklab, var(--brand) 28%, transparent);
+	color: inherit;
+	border-radius: 2px;
+	padding: 0 0.1em;
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
 }

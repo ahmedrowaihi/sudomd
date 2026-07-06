@@ -1,6 +1,6 @@
 # Desktop App
 
-Desktop app for Hubble.md (TypeScript + Electron).
+Desktop app for Sudomd (TypeScript + Electron).
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ For Chrome DevTools MCP access:
 pnpm dev:desktop:debug
 ```
 
-The debug command exposes the Electron renderer over Chrome DevTools Protocol at `http://127.0.0.1:${HUBBLE_DESKTOP_DEBUG_PORT:-9222}`.
+The debug command exposes the Electron renderer over Chrome DevTools Protocol at `http://127.0.0.1:${SUDOMD_DESKTOP_DEBUG_PORT:-9222}`.
 
 ## Build
 
@@ -43,7 +43,7 @@ Build a given platform's artifacts on that platform.
 
 ## Distribution
 
-Production updates use GitHub Releases on `bholmesdev/hubble.md`, built by the
+Production updates use GitHub Releases on `ahmedrowaihi/sudomd`, built by the
 `Desktop Release` workflow when a `desktop-v*` tag is pushed. Artifacts per platform:
 
 - **macOS** — `latest-mac.yml`, the `.zip`, and the `.dmg`

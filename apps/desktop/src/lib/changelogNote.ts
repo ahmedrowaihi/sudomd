@@ -1,4 +1,4 @@
-export const CHANGELOG_PATH = "hubble://changelog";
+export const CHANGELOG_PATH = "sudomd://changelog";
 
 export function isChangelogPath(
 	path: string | null | undefined,
@@ -42,5 +42,5 @@ export function prepareChangelogMarkdown(raw: string): string {
 		content.push(line);
 	}
 
-	return `# What's new in Hubble\n\n${content.join("")}`;
+	return `# What's new in Sudomd\n\n${content.join("")}`;
 }

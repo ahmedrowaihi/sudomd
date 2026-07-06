@@ -17,12 +17,12 @@ export function Toaster() {
 			richColors
 			toastOptions={{
 				classNames: {
-					toast: "hubble-toast",
-					title: "hubble-toast-title",
-					description: "hubble-toast-description",
-					actionButton: "hubble-toast-action",
-					cancelButton: "hubble-toast-cancel",
-					closeButton: "hubble-toast-close",
+					toast: "sudomd-toast",
+					title: "sudomd-toast-title",
+					description: "sudomd-toast-description",
+					actionButton: "sudomd-toast-action",
+					cancelButton: "sudomd-toast-cancel",
+					closeButton: "sudomd-toast-close",
 				},
 			}}
 		/>

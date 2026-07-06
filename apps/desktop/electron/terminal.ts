@@ -35,7 +35,7 @@ function getDefaultShell() {
 function getTerminalEnv(notePath?: string) {
 	return {
 		...process.env,
-		...(notePath ? { HUBBLE_NOTE_PATH: notePath } : {}),
+		...(notePath ? { SUDOMD_NOTE_PATH: notePath } : {}),
 	};
 }
 

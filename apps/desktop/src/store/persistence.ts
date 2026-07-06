@@ -4,6 +4,7 @@ import { emptyDoc, type SortMode } from "./state";
 type WorkspaceState = {
 	workspacePath: string | null;
 	recentWorkspaces: string[];
+	workspaceNames: Record<string, string>;
 	lastOpenedPaths: Record<string, string>;
 	sortMode: SortMode;
 	files: { path: string; modified_at: number }[];
@@ -39,6 +40,7 @@ type Persisted = {
 	workspace?: {
 		workspacePath?: string | null;
 		recentWorkspaces?: string[];
+		workspaceNames?: Record<string, string>;
 		lastOpenedPaths?: Record<string, string>;
 		sortMode?: SortMode;
 	};
@@ -51,7 +53,7 @@ type Persisted = {
 	settings?: { chatCommand?: string; lastSeenVersion?: string | null };
 };
 
-export const STORAGE_KEY = "hubble-desktop-app";
+export const STORAGE_KEY = "sudomd-desktop-app";
 
 function readStorage<T>(key: string): T | null {
 	if (typeof localStorage === "undefined") return null;
@@ -71,6 +73,12 @@ function hydrateWorkspace(ws: Persisted["workspace"]): WorkspaceState {
 		recentWorkspaces: Array.isArray(ws?.recentWorkspaces)
 			? ws.recentWorkspaces
 			: [],
+		workspaceNames:
+			ws?.workspaceNames &&
+			typeof ws.workspaceNames === "object" &&
+			!Array.isArray(ws.workspaceNames)
+				? ws.workspaceNames
+				: {},
 		lastOpenedPaths:
 			ws?.lastOpenedPaths &&
 			typeof ws.lastOpenedPaths === "object" &&
@@ -120,6 +128,7 @@ export function serialize(state: DesktopState): Persisted {
 		workspace: {
 			workspacePath: state.workspace.workspacePath,
 			recentWorkspaces: state.workspace.recentWorkspaces,
+			workspaceNames: state.workspace.workspaceNames,
 			lastOpenedPaths: state.workspace.lastOpenedPaths,
 			sortMode: state.workspace.sortMode,
 		},

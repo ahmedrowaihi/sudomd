@@ -12,8 +12,8 @@ const worktreeId = createHash("sha1")
 	.update(path.resolve(appDir, "../.."))
 	.digest("hex")
 	.slice(0, 8);
-const devAppName = `Hubble Dev ${worktreeId}`;
-const devBundleId = `com.benholmes.hubblemd.desktop.dev.${worktreeId}`;
+const devAppName = `Sudomd Dev ${worktreeId}`;
+const devBundleId = `com.benholmes.sudomd.desktop.dev.${worktreeId}`;
 const devAppPath = path.join(devAppDir, `${devAppName}.app`);
 const devExecPath = path.join(devAppPath, "Contents", "MacOS", devAppName);
 const markerPath = path.join(devAppDir, "metadata.json");
@@ -115,7 +115,7 @@ async function patchMainBundle() {
 	const resourcesDir = path.join(devAppPath, "Contents", "Resources");
 	const macosDir = path.join(devAppPath, "Contents", "MacOS");
 	const sourceExecutable = path.join(macosDir, "Electron");
-	const iconPath = path.join(resourcesDir, "hubble-dev.icns");
+	const iconPath = path.join(resourcesDir, "sudomd-dev.icns");
 
 	if (await pathExists(sourceExecutable)) {
 		await fs.rename(sourceExecutable, devExecPath);
@@ -126,7 +126,7 @@ async function patchMainBundle() {
 	setPlistValue(plistPath, "CFBundleName", devAppName);
 	setPlistValue(plistPath, "CFBundleDisplayName", devAppName);
 	setPlistValue(plistPath, "CFBundleExecutable", devAppName);
-	setPlistValue(plistPath, "CFBundleIconFile", "hubble-dev.icns");
+	setPlistValue(plistPath, "CFBundleIconFile", "sudomd-dev.icns");
 }
 
 async function patchHelperBundle(helperAppPath, suffix) {
@@ -286,13 +286,13 @@ await ensurePlayground();
 await ensurePlaygroundHtml();
 // Default to the playground, but let an explicit env value win (set it empty
 // to launch with no workspace and test the first-run welcome screen).
-env.HUBBLE_DESKTOP_DEV_WORKSPACE =
-	process.env.HUBBLE_DESKTOP_DEV_WORKSPACE ?? playgroundPath;
+env.SUDOMD_DESKTOP_DEV_WORKSPACE =
+	process.env.SUDOMD_DESKTOP_DEV_WORKSPACE ?? playgroundPath;
 
 if (process.platform === "darwin") {
 	env.ELECTRON_EXEC_PATH = await ensureDevApp();
-	env.HUBBLE_DESKTOP_FORCE_DEV = "1";
-	env.HUBBLE_DESKTOP_DEV_APP_NAME = devAppName;
+	env.SUDOMD_DESKTOP_FORCE_DEV = "1";
+	env.SUDOMD_DESKTOP_DEV_APP_NAME = devAppName;
 	await killExistingDevAppProcesses();
 	console.log(`Computer Use app: ${devBundleId}`);
 	console.log(`Playground: ${playgroundPath}`);

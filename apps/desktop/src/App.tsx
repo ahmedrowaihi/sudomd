@@ -1,4 +1,5 @@
-import { wikiDisplayNameForTarget } from "@hubble.md/editor";
+import { useStoreValue } from "@simplestack/store/react";
+import { wikiDisplayNameForTarget } from "@sudomd/editor";
 import {
 	Button,
 	classifyHref,
@@ -8,15 +9,17 @@ import {
 	MarkdownSourceEditor,
 	type PaletteFile,
 	type WikiTarget,
-} from "@hubble.md/ui";
-import { useStoreValue } from "@simplestack/store/react";
+} from "@sudomd/ui";
 import { keymatch } from "keymatch";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import MingcutePencilLine from "~icons/mingcute/pencil-line";
+import { BacklinksPanel } from "./components/BacklinksPanel";
 import { HtmlAppEmptyState } from "./components/HtmlAppEmptyState";
+import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
 import { SettingsDialog, SettingsSection } from "./components/SettingsDialog";
 import { Sidebar } from "./components/Sidebar";
+import { SudomdSettingsSections } from "./components/SudomdSettingsSections";
 import { TerminalPanel } from "./components/TerminalPanel";
 import { Toolbar } from "./components/Toolbar";
 import { SidebarCallout, UpdatesSection } from "./components/UpdatesSection";
@@ -27,11 +30,13 @@ import { createEmbedExtension } from "./editor/EmbedExtension";
 import { handleImageDrop, handleImagePaste } from "./editor/handleImagePaste";
 import { IframeView, toAssetUrl } from "./editor/IframeView";
 import { createImageExtension } from "./editor/ImageExtension";
+import { useBasecampCopyListener } from "./features/useBasecampCopyListener";
 import { createHtmlFile, createMarkdownFile } from "./fileActions";
 import { isChangelogPath } from "./lib/changelogNote";
 import { copyText } from "./lib/clipboard";
 import {
 	hasHtmlExtension,
+	hasJsonExtension,
 	hasMarkdownExtension,
 	relativeWorkspacePath,
 } from "./lib/filePath";
@@ -144,6 +149,7 @@ function App() {
 		useState<HTMLDivElement | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [copyAsMarkdownRequest, setCopyAsMarkdownRequest] = useState(0);
+	const [shortcutsOpen, setShortcutsOpen] = useState(false);
 	const [updateState, setUpdateState] = useState<DesktopUpdateState | null>(
 		null,
 	);
@@ -274,6 +280,8 @@ function App() {
 		if (!sidebarOpen) setFocusedSidebarPath(null);
 	}, [sidebarOpen]);
 
+	useBasecampCopyListener();
+
 	useEffect(() => {
 		const onKeyDown = async (event: KeyboardEvent) => {
 			if (keymatch(event, "CmdOrCtrl+[")) {
@@ -391,6 +399,7 @@ function App() {
 				}
 				setViewerMode(current.viewMode === "source" ? "rich" : "source");
 			}),
+			desktopApi.onMenuShowShortcuts(() => setShortcutsOpen(true)),
 		];
 		return () => {
 			for (const dispose of disposers) dispose();
@@ -476,7 +485,7 @@ function App() {
 							<SidebarCallout
 								message={
 									<>
-										<span className="font-semibold">Hubble updated</span> to{" "}
+										<span className="font-semibold">Sudomd updated</span> to{" "}
 										{whatsNewVersion}.
 									</>
 								}
@@ -551,6 +560,7 @@ function App() {
 				searchContents={searchFileContents}
 			/>
 			<SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+				<SudomdSettingsSections />
 				<ChatAboutNoteSettingsSection />
 				{updateState ? (
 					<UpdatesSection
@@ -560,6 +570,10 @@ function App() {
 					/>
 				) : null}
 			</SettingsDialog>
+			<KeyboardShortcutsModal
+				open={shortcutsOpen}
+				onOpenChange={setShortcutsOpen}
+			/>
 		</main>
 	);
 }
@@ -570,7 +584,7 @@ function ChatAboutNoteSettingsSection() {
 	return (
 		<SettingsSection
 			title="Chat about this note"
-			description={`This command runs in a new terminal when you pick "Chat about this note" from a note's ⋯ menu. The shell replaces $HUBBLE_NOTE_PATH with the current note's file path.`}
+			description={`This command runs in a new terminal when you pick "Chat about this note" from a note's ⋯ menu. The shell replaces $SUDOMD_NOTE_PATH with the current note's file path.`}
 		>
 			<div className="relative">
 				<Input
@@ -609,6 +623,20 @@ function DocumentViewer({
 				key={`${path}:${content}`}
 				path={path}
 				content={content}
+				onScrollContainerChange={onScrollContainerChange}
+			/>
+		);
+	}
+
+	if (hasJsonExtension(path)) {
+		return (
+			<MarkdownSourceEditor
+				key={`${path}:json:${HMR_REV}`}
+				path={path}
+				initialMarkdown={content}
+				language="json"
+				onLocalChange={updateEditorContent}
+				onSave={savePathContent}
 				onScrollContainerChange={onScrollContainerChange}
 			/>
 		);
@@ -756,38 +784,42 @@ function MarkdownEditor({
 		}
 	};
 	return (
-		<EditorView
-			path={path}
-			initialMarkdown={initialMarkdown}
-			editable={!isChangelogPath(path)}
-			wikiTargets={wikiTargets}
-			extensions={[
-				createImageExtension(path),
-				createEmbedExtension({
-					workspacePath: workspace.workspacePath,
-					filePath: path,
-				}),
-			]}
-			onPaste={(editor, event) => handleImagePaste({ editor, event })}
-			onDrop={(editor, event) => handleImageDrop({ editor, event })}
-			onLocalChange={updateEditorContent}
-			onSave={savePathContent}
-			onScrollContainerChange={onScrollContainerChange}
-			copyAsMarkdownRequest={copyAsMarkdownRequest}
-			onOpenExternalLink={openExternalLink}
-			onOpenWikiLink={(target) =>
-				void loadPath(
-					resolveWikiPath({
-						target,
-						files: workspace.files,
+		<div className="relative flex h-full min-h-0 flex-col">
+			<EditorView
+				path={path}
+				initialMarkdown={initialMarkdown}
+				editable={!isChangelogPath(path)}
+				wikiTargets={wikiTargets}
+				extensions={[
+					createImageExtension(path),
+					createEmbedExtension({
 						workspacePath: workspace.workspacePath,
+						filePath: path,
 					}),
-				)
-			}
-			onMessage={(message, kind) =>
-				kind === "success" ? toast.success(message) : toast.error(message)
-			}
-		/>
+				]}
+				onPaste={(editor, event) => handleImagePaste({ editor, event })}
+				onDrop={(editor, event) => handleImageDrop({ editor, event })}
+				onLocalChange={updateEditorContent}
+				onSave={savePathContent}
+				onScrollContainerChange={onScrollContainerChange}
+				copyAsMarkdownRequest={copyAsMarkdownRequest}
+				onOpenExternalLink={openExternalLink}
+				onOpenWikiLink={(target) =>
+					void loadPath(
+						resolveWikiPath({
+							target,
+							files: workspace.files,
+							workspacePath: workspace.workspacePath,
+							currentPath: path,
+						}),
+					)
+				}
+				onMessage={(message, kind) =>
+					kind === "success" ? toast.success(message) : toast.error(message)
+				}
+			/>
+			<BacklinksPanel currentPath={path} />
+		</div>
 	);
 }
 

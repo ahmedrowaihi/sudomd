@@ -128,12 +128,12 @@ function IframeEmbedNodeView({
 	}, [resolvedEmbed]);
 
 	return (
-		<NodeViewWrapper className="hubble-embed">
+		<NodeViewWrapper className="sudomd-embed">
 			{error ? (
-				<p className="hubble-embed-error">{error}</p>
+				<p className="sudomd-embed-error">{error}</p>
 			) : (
 				<IframeView
-					className="hubble-iframe-embed"
+					className="sudomd-iframe-embed"
 					onError={setError}
 					onHeightChange={(nextHeight) =>
 						setHeight((current) =>
@@ -150,7 +150,7 @@ function IframeEmbedNodeView({
 							: ""
 					}
 					style={{ blockSize: `${height}px` }}
-					title={src || "Hubble iframe embed"}
+					title={src || "Sudomd iframe embed"}
 					workspacePath={workspacePath}
 				/>
 			)}
@@ -170,7 +170,7 @@ function dirname(filePath: string): string {
 	return normalized.slice(0, idx);
 }
 
-const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|hubble-asset:)/i;
+const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|sudomd-asset:)/i;
 const LOCAL_IFRAME_SRC = /^(\.{1,2}\/|[^:/\\]+(?:\/|$)).*\.html(?:[?#].*)?$/i;
 
 /**
@@ -196,7 +196,7 @@ function embedAssetUrl(path: string, suffix: string, reloadKey: number) {
 	const query = hashIndex === -1 ? suffix : suffix.slice(0, hashIndex);
 	const hash = hashIndex === -1 ? "" : suffix.slice(hashIndex);
 	const separator = query.includes("?") ? "&" : "?";
-	return `${toAssetUrl(path)}${query}${separator}hubble-reload=${reloadKey}${hash}`;
+	return `${toAssetUrl(path)}${query}${separator}sudomd-reload=${reloadKey}${hash}`;
 }
 
 function splitIframeSrc(src: string): { path: string; suffix: string } {

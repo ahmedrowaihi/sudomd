@@ -11,12 +11,13 @@ import MingcuteBorderHorizontalLine from "~icons/mingcute/border-horizontal-line
 import MingcuteHeading1Line from "~icons/mingcute/heading-1-line";
 import MingcuteHeading2Line from "~icons/mingcute/heading-2-line";
 import MingcuteHeading3Line from "~icons/mingcute/heading-3-line";
+import MingcuteLinkLine from "~icons/mingcute/link-line";
 import MingcuteListCheck2Line from "~icons/mingcute/list-check-2-line";
 import MingcuteListCheckLine from "~icons/mingcute/list-check-line";
 import MingcuteListOrderedLine from "~icons/mingcute/list-ordered-line";
 import MingcuteQuoteLeftLine from "~icons/mingcute/quote-left-line";
 import MingcuteStrikethroughLine from "~icons/mingcute/strikethrough-line";
-import MingcuteTable2Line from "~icons/mingcute/table-2-line";
+import MingcuteTableLine from "~icons/mingcute/table-line";
 import MingcuteTextLine from "~icons/mingcute/text-line";
 import { formatShortcut } from "../lib/shortcut";
 import { cn } from "../lib/utils";
@@ -122,9 +123,16 @@ const SLASH_COMMANDS: SlashCommand[] = [
 	{
 		kind: "table",
 		title: "Table",
-		description: "Insert a table",
-		aliases: ["table", "grid"],
-		icon: MingcuteTable2Line,
+		description: "Insert a 3×3 table",
+		aliases: ["table", "grid", "rows", "columns"],
+		icon: MingcuteTableLine,
+	},
+	{
+		kind: "link",
+		title: "Link",
+		description: "Insert or edit a link",
+		aliases: ["link", "url", "href", "anchor"],
+		icon: MingcuteLinkLine,
 	},
 ];
 

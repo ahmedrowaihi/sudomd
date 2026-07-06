@@ -74,7 +74,7 @@ export function useSidebarTree({
 	uncompactFolderId?: string | null;
 }) {
 	const storageKey = storageScope
-		? `hubble-sidebar-expanded-folders:${storageScope}`
+		? `sudomd-sidebar-expanded-folders:${storageScope}`
 		: null;
 	const revealedPathRef = useRef<string | null>(null);
 	const [expandedState, setExpandedState] = useState<ExpandedState>(() => ({

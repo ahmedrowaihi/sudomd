@@ -1,4 +1,4 @@
-import { Button } from "@hubble.md/ui";
+import { Button } from "@sudomd/ui";
 
 export function WelcomeScreen({
 	onCreateFolder,
@@ -13,7 +13,7 @@ export function WelcomeScreen({
 				className="welcome-rise font-rounded text-3xl font-medium tracking-tight"
 				style={{ animationDelay: "0.05s" }}
 			>
-				Welcome to <span className="font-semibold">hubble</span>
+				Welcome to <span className="font-semibold">sudomd</span>
 			</h2>
 			<p
 				className="welcome-rise mb-2 text-sm text-muted-foreground"

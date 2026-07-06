@@ -2214,8 +2214,8 @@ function clampSidebarWidth(width: number) {
 
 function sidebarWidthStorageKey(storageScope?: string | null) {
 	return storageScope
-		? `hubble-sidebar-width:${storageScope}`
-		: "hubble-sidebar-width";
+		? `sudomd-sidebar-width:${storageScope}`
+		: "sudomd-sidebar-width";
 }
 
 function readSidebarWidth(storageKey: string) {

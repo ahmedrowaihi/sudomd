@@ -1,13 +1,13 @@
-.hubble-embed {
+.sudomd-embed {
 	margin-block: 1rem;
 }
 
-.hubble-embed.ProseMirror-selectednode {
+.sudomd-embed.ProseMirror-selectednode {
 	outline: 2px solid hsl(var(--ring));
 	outline-offset: 2px;
 }
 
-.hubble-iframe-embed {
+.sudomd-iframe-embed {
 	background: var(--card);
 	border: 0;
 	border-radius: 8px;
@@ -17,7 +17,7 @@
 	overflow: hidden;
 }
 
-.hubble-embed-error {
+.sudomd-embed-error {
 	border: 1px solid hsl(var(--destructive));
 	border-radius: 8px;
 	color: hsl(var(--destructive));

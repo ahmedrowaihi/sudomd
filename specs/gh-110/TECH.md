@@ -118,8 +118,8 @@ rather than implicit.
   happy-dom` directive (happy-dom is already available; no new dep/config).
 - **Manual:** the UX-validation steps in PRODUCT.md, plus before/after
   screenshots in light and dark.
-- **Regression:** existing desktop (`pnpm --filter @hubble.md/desktop test`) and
-  editor (`pnpm --filter @hubble.md/editor test`) suites stay green;
+- **Regression:** existing desktop (`pnpm --filter @sudomd/desktop test`) and
+  editor (`pnpm --filter @sudomd/editor test`) suites stay green;
   `pnpm build:desktop` (tsc + electron-vite) and Biome stay clean.
 
 ## Reference branch

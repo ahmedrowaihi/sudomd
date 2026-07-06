@@ -1,6 +1,6 @@
 import { ContextMenu } from "@base-ui/react/context-menu";
-import { useResizeSeparator } from "@hubble.md/ui";
 import { useStoreValue } from "@simplestack/store/react";
+import { useResizeSeparator } from "@sudomd/ui";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import {

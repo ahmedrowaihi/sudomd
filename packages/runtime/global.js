@@ -1,25 +1,25 @@
 (() => {
-	const hubbleToken = window.__hubbleHtmlAppToken || window.name;
-	let nextHubbleRequestId = 0;
-	const pendingHubbleRequests = new Map();
-	const postHubbleRequest = (id, method, params) => {
+	const sudomdToken = window.__sudomdHtmlAppToken || window.name;
+	let nextSudomdRequestId = 0;
+	const pendingSudomdRequests = new Map();
+	const postSudomdRequest = (id, method, params) => {
 		parent.postMessage(
-			{ type: "hubble:request", id, method, params, token: hubbleToken },
+			{ type: "sudomd:request", id, method, params, token: sudomdToken },
 			"*",
 		);
 	};
-	const requestHubble = (method, params) =>
+	const requestSudomd = (method, params) =>
 		new Promise((resolve, reject) => {
-			const id = ++nextHubbleRequestId;
+			const id = ++nextSudomdRequestId;
 			const timeout = window.setTimeout(() => {
-				pendingHubbleRequests.delete(id);
-				reject(new Error("Hubble request timed out"));
+				pendingSudomdRequests.delete(id);
+				reject(new Error("Sudomd request timed out"));
 			}, 10000);
-			pendingHubbleRequests.set(id, { resolve, reject, timeout });
-			postHubbleRequest(id, method, params);
+			pendingSudomdRequests.set(id, { resolve, reject, timeout });
+			postSudomdRequest(id, method, params);
 		});
-	const safeRequestHubble = (method, params) =>
-		requestHubble(method, params)
+	const safeRequestSudomd = (method, params) =>
+		requestSudomd(method, params)
 			.then((value) => ({ ok: true, value }))
 			.catch((error) => ({
 				ok: false,
@@ -30,34 +30,34 @@
 
 	window.addEventListener("message", (event) => {
 		const data = event.data;
-		if (!data || data.type !== "hubble:response") return;
-		const pending = pendingHubbleRequests.get(data.id);
+		if (!data || data.type !== "sudomd:response") return;
+		const pending = pendingSudomdRequests.get(data.id);
 		if (!pending) return;
-		pendingHubbleRequests.delete(data.id);
+		pendingSudomdRequests.delete(data.id);
 		window.clearTimeout(pending.timeout);
 		if (data.ok) pending.resolve(data.value);
 		else if (data.error && typeof data.error.message === "string") {
 			pending.reject(new Error(data.error.message));
 		} else {
-			pending.reject(new Error(data.error || "Hubble request failed"));
+			pending.reject(new Error(data.error || "Sudomd request failed"));
 		}
 	});
 
-	window.hubble = {
+	window.sudomd = {
 		files: {
-			list: (glob = "**/*") => requestHubble("files.list", { glob }),
-			safeList: (glob = "**/*") => safeRequestHubble("files.list", { glob }),
-			read: (path) => requestHubble("files.read", { path }),
-			safeRead: (path) => safeRequestHubble("files.read", { path }),
-			open: (path) => requestHubble("files.open", { path }),
-			safeOpen: (path) => safeRequestHubble("files.open", { path }),
-			create: (input) => requestHubble("files.create", { input }),
-			safeCreate: (input) => safeRequestHubble("files.create", { input }),
-			update: (path, patch) => requestHubble("files.update", { path, patch }),
+			list: (glob = "**/*") => requestSudomd("files.list", { glob }),
+			safeList: (glob = "**/*") => safeRequestSudomd("files.list", { glob }),
+			read: (path) => requestSudomd("files.read", { path }),
+			safeRead: (path) => safeRequestSudomd("files.read", { path }),
+			open: (path) => requestSudomd("files.open", { path }),
+			safeOpen: (path) => safeRequestSudomd("files.open", { path }),
+			create: (input) => requestSudomd("files.create", { input }),
+			safeCreate: (input) => safeRequestSudomd("files.create", { input }),
+			update: (path, patch) => requestSudomd("files.update", { path, patch }),
 			safeUpdate: (path, patch) =>
-				safeRequestHubble("files.update", { path, patch }),
-			remove: (path) => requestHubble("files.remove", { path }),
-			safeRemove: (path) => safeRequestHubble("files.remove", { path }),
+				safeRequestSudomd("files.update", { path, patch }),
+			remove: (path) => requestSudomd("files.remove", { path }),
+			safeRemove: (path) => safeRequestSudomd("files.remove", { path }),
 		},
 	};
 
@@ -76,7 +76,7 @@
 				}, 0) + bodyPaddingBlockEnd
 			: 0;
 		parent.postMessage(
-			{ type: "hubble:html-app-height", height, token: hubbleToken },
+			{ type: "sudomd:html-app-height", height, token: sudomdToken },
 			"*",
 		);
 	};

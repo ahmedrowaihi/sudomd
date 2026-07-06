@@ -1,6 +1,7 @@
 import os from "node:os";
 import { contextBridge, ipcRenderer } from "electron";
 import type { DesktopApi } from "../src/desktopApi/types";
+import { featurePreload } from "./featurePreload";
 
 function subscribe<T extends unknown[]>(
 	channel: string,
@@ -32,8 +33,8 @@ const desktopApi = {
 		ipcRenderer.invoke("desktop:read-file-text", { path }),
 	searchFileContents: (input) =>
 		ipcRenderer.invoke("desktop:search-file-contents", input),
-	detectHubbleSkills: (workspacePath) =>
-		ipcRenderer.invoke("desktop:detect-hubble-skills", { workspacePath }),
+	detectSudomdSkills: (workspacePath) =>
+		ipcRenderer.invoke("desktop:detect-sudomd-skills", { workspacePath }),
 	writeFileText: (path, content) => {
 		// Encode in the renderer before IPC. Main should write these bytes as-is,
 		// because re-encoding the string there has truncated multibyte characters.
@@ -81,7 +82,7 @@ const desktopApi = {
 	resolvePath: (path) => ipcRenderer.invoke("desktop:resolve-path", { path }),
 	realPath: (path) => ipcRenderer.invoke("desktop:real-path", { path }),
 	toAssetUrl: (path) =>
-		`hubble-asset://local/?path=${encodeURIComponent(path)}`,
+		`sudomd-asset://local/?path=${encodeURIComponent(path)}`,
 	getLaunchFilePath: () => ipcRenderer.invoke("desktop:get-launch-file-path"),
 	getLaunchWorkspacePath: () =>
 		ipcRenderer.invoke("desktop:get-launch-workspace-path"),
@@ -110,6 +111,9 @@ const desktopApi = {
 	onMenuShowWorkspaceSwitcher: (callback) =>
 		subscribe("desktop:menu-show-workspace-switcher", callback),
 	onMenuGoToFile: (callback) => subscribe("desktop:menu-go-to-file", callback),
+	onMenuShowShortcuts: (callback) =>
+		subscribe("desktop:menu-show-shortcuts", callback),
+	...featurePreload,
 	onMenuSyncWorkspace: (callback) =>
 		subscribe("desktop:menu-sync-workspace", callback),
 	onMenuToggleTerminal: (callback) =>

@@ -3,8 +3,8 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import hubbleRuntime from "@hubble.md/runtime/global.js?raw";
-import htmlAppTheme from "@hubble.md/runtime/html-app-theme.css?raw";
+import sudomdRuntime from "@sudomd/runtime/global.js?raw";
+import htmlAppTheme from "@sudomd/runtime/html-app-theme.css?raw";
 import tailwindRuntime from "@tailwindcss/browser?raw";
 import alpineRuntime from "alpinejs/dist/cdn.min.js?raw";
 import chokidar, { type FSWatcher } from "chokidar";
@@ -31,6 +31,7 @@ import type {
 } from "../src/desktopApi/types";
 import {
 	hasDocumentExtension,
+	hasJsonExtension,
 	hasMarkdownExtension,
 	isHiddenSidebarFolderName,
 	markdownAssetFolderPath,
@@ -43,7 +44,9 @@ import {
 	SEARCH_MAX_RESULT_FILES,
 	SEARCH_MIN_QUERY_LENGTH,
 } from "../src/lib/searchContent";
+import { registerBasecampIpc } from "./basecampImport";
 import { setupTerminalIpc } from "./terminal";
+import { registerThemeIpc } from "./theme";
 import {
 	loadZoomFactor,
 	resetWindowZoom,
@@ -86,12 +89,12 @@ type WindowBounds = {
 	height: number;
 };
 
-const isDev = !app.isPackaged || process.env.HUBBLE_DESKTOP_FORCE_DEV === "1";
+const isDev = !app.isPackaged || process.env.SUDOMD_DESKTOP_FORCE_DEV === "1";
 const { autoUpdater } = electronUpdater;
-const devAppName = isDev ? process.env.HUBBLE_DESKTOP_DEV_APP_NAME : undefined;
-const appName = devAppName ?? "Hubble";
-const debugPort = process.env.HUBBLE_DESKTOP_DEBUG_PORT ?? "9222";
-const updateFeedUrl = process.env.HUBBLE_DESKTOP_UPDATE_URL;
+const devAppName = isDev ? process.env.SUDOMD_DESKTOP_DEV_APP_NAME : undefined;
+const appName = devAppName ?? "sudomd";
+const debugPort = process.env.SUDOMD_DESKTOP_DEBUG_PORT ?? "9222";
+const updateFeedUrl = process.env.SUDOMD_DESKTOP_UPDATE_URL;
 const supportsAutoUpdates = !isDev && process.platform === "darwin";
 const updateCheckErrorMessage =
 	"Couldn't check for updates. Try again shortly.";
@@ -116,7 +119,7 @@ if (devAppName) {
 	app.setPath("userData", path.join(app.getPath("appData"), devAppName));
 }
 
-if (isDev && process.env.HUBBLE_DESKTOP_ENABLE_CDP === "1") {
+if (isDev && process.env.SUDOMD_DESKTOP_ENABLE_CDP === "1") {
 	app.commandLine.appendSwitch("remote-debugging-address", "127.0.0.1");
 	app.commandLine.appendSwitch("remote-debugging-port", debugPort);
 }
@@ -137,8 +140,8 @@ let pendingOpenPath: string | null = firstExistingFileArg(
 	process.argv.slice(1),
 );
 const launchWorkspacePath =
-	isDev && process.env.HUBBLE_DESKTOP_DEV_WORKSPACE
-		? resolvePath(process.env.HUBBLE_DESKTOP_DEV_WORKSPACE)
+	isDev && process.env.SUDOMD_DESKTOP_DEV_WORKSPACE
+		? resolvePath(process.env.SUDOMD_DESKTOP_DEV_WORKSPACE)
 		: null;
 let menuState: MenuState = {
 	hasWorkspace: false,
@@ -169,7 +172,7 @@ let latestSearchRequestId = 0;
 const ignoreConfigFiles = [".gitignore", ".ignore"];
 const ignoredWorkspaceDirs = new Set([".git", "dist", "node_modules"]);
 const workspaceConfigVersion = 1;
-const workspaceConfigDir = ".hubble";
+const workspaceConfigDir = ".sudomd";
 const workspaceConfigFile = "config.json";
 const workspaceConfigSchema = z.object({
 	version: z.literal(workspaceConfigVersion),
@@ -194,10 +197,10 @@ const windowStateSchema = z.object({
 	isFullScreen: z.boolean().optional(),
 });
 const htmlAppHeadStyles = [
-	{ name: "hubble-theme", source: htmlAppTheme },
+	{ name: "sudomd-theme", source: htmlAppTheme },
 ] as const;
 const htmlAppHeadScripts = [
-	{ name: "hubble-runtime", source: hubbleRuntime },
+	{ name: "sudomd-runtime", source: sudomdRuntime },
 	{ name: "tailwind-browser", source: tailwindRuntime },
 ] as const;
 // Alpine's CDN build auto-starts immediately; inline scripts cannot use defer.
@@ -211,6 +214,26 @@ function grantsPath(): string {
 
 function windowStatePath(): string {
 	return path.join(app.getPath("userData"), "window-size.json");
+}
+
+// dialog.show*Dialog's windowed overload requires a non-null BaseWindow, so
+// route to the window-less overload when there is no main window.
+function showOpenDialog(options: Electron.OpenDialogOptions) {
+	return mainWindow
+		? dialog.showOpenDialog(mainWindow, options)
+		: dialog.showOpenDialog(options);
+}
+
+function showSaveDialog(options: Electron.SaveDialogOptions) {
+	return mainWindow
+		? dialog.showSaveDialog(mainWindow, options)
+		: dialog.showSaveDialog(options);
+}
+
+function showMessageBox(options: Electron.MessageBoxOptions) {
+	return mainWindow
+		? dialog.showMessageBox(mainWindow, options)
+		: dialog.showMessageBox(options);
 }
 
 function workspaceConfigPath(workspacePath: string): string {
@@ -474,7 +497,7 @@ function isIgnoredByRules(candidatePath: string, rules: IgnoreRule[]) {
 }
 
 function isDocumentPath(candidatePath: string): boolean {
-	return hasDocumentExtension(candidatePath);
+	return hasDocumentExtension(candidatePath) || hasJsonExtension(candidatePath);
 }
 
 function isMissingPathError(error: unknown): boolean {
@@ -540,7 +563,7 @@ async function assertGrantedOrConfirmFile(filePath: string): Promise<string> {
 		return assertGranted(filePath);
 	} catch {
 		const resolved = resolvePath(filePath);
-		const result = await dialog.showMessageBox(mainWindow ?? undefined, {
+		const result = await showMessageBox({
 			type: "question",
 			buttons: ["Open", "Cancel"],
 			defaultId: 0,
@@ -554,17 +577,17 @@ async function assertGrantedOrConfirmFile(filePath: string): Promise<string> {
 	}
 }
 
-// HUBBLE_SKILL_DIR_NAMES tracks the skill folders in
-// github.com/bholmesdev/hubble-skills and must be updated if those skills are
-// renamed; the /hubble/ substring match is a resilient fallback.
-const HUBBLE_SKILL_DIR_NAMES = ["create-html-app", "embed-html-app"];
+// SUDOMD_SKILL_DIR_NAMES tracks the skill folders in
+// github.com/ahmedrowaihi/sudomd-skills and must be updated if those skills are
+// renamed; the /sudomd/ substring match is a resilient fallback.
+const SUDOMD_SKILL_DIR_NAMES = ["create-html-app", "embed-html-app"];
 
-async function skillsDirHasHubble(dirPath: string): Promise<boolean> {
+async function skillsDirHasSudomd(dirPath: string): Promise<boolean> {
 	try {
 		const entries = await fs.readdir(dirPath);
 		return entries.some((name) => {
 			const lower = name.toLocaleLowerCase();
-			return HUBBLE_SKILL_DIR_NAMES.includes(lower) || lower.includes("hubble");
+			return SUDOMD_SKILL_DIR_NAMES.includes(lower) || lower.includes("sudomd");
 		});
 	} catch {
 		return false;
@@ -572,12 +595,12 @@ async function skillsDirHasHubble(dirPath: string): Promise<boolean> {
 }
 
 /**
- * Detects Hubble skills across the workspace and the user's global agent
+ * Detects Sudomd skills across the workspace and the user's global agent
  * folders. Runs in the main process because the global paths live outside the
  * renderer's granted file scope. Fast and ENOENT-quiet: every location is probed
  * in parallel and missing paths resolve to false.
  */
-async function detectHubbleSkills(workspacePath: unknown): Promise<boolean> {
+async function detectSudomdSkills(workspacePath: unknown): Promise<boolean> {
 	const workspace = typeof workspacePath === "string" ? workspacePath : null;
 	const roots = workspace ? [os.homedir(), workspace] : [os.homedir()];
 	const skillDirs = roots.flatMap((root) => [
@@ -585,7 +608,7 @@ async function detectHubbleSkills(workspacePath: unknown): Promise<boolean> {
 		path.join(root, ".agents", "skills"),
 	]);
 
-	const results = await Promise.all(skillDirs.map(skillsDirHasHubble));
+	const results = await Promise.all(skillDirs.map(skillsDirHasSudomd));
 	return results.some(Boolean);
 }
 
@@ -644,11 +667,11 @@ function assetContentType(filePath: string): string {
 }
 
 function scriptTag({ name, source }: HtmlAppAsset) {
-	return `<script data-hubble-injected="${name}">\n${source}\n</script>`;
+	return `<script data-sudomd-injected="${name}">\n${source}\n</script>`;
 }
 
 function styleTag({ name, source }: HtmlAppAsset) {
-	return `<style data-hubble-injected="${name}" type="text/tailwindcss">\n${source}\n</style>`;
+	return `<style data-sudomd-injected="${name}" type="text/tailwindcss">\n${source}\n</style>`;
 }
 
 function insertBeforeCloseTag(html: string, tagName: string, content: string) {
@@ -913,12 +936,18 @@ function buildMenu() {
 			],
 		},
 		{
-			label: "Help",
+			role: "help",
 			submenu: [
 				{
 					id: "whats-new",
 					label: "See what's new",
 					click: () => sendToRenderer("desktop:menu-open-changelog"),
+				},
+				{
+					id: "keyboard-shortcuts",
+					label: "Keyboard Shortcuts",
+					accelerator: "CmdOrCtrl+/",
+					click: () => sendToRenderer("desktop:menu-show-shortcuts"),
 				},
 			],
 		},
@@ -1024,7 +1053,7 @@ function configureAutoUpdates() {
 			status: "up-to-date",
 			availableVersion: null,
 			progressPercent: null,
-			message: "Hubble is up to date.",
+			message: "sudomd is up to date.",
 			lastCheckedAt: Date.now(),
 		});
 	});
@@ -1040,7 +1069,7 @@ function configureAutoUpdates() {
 			status: "ready",
 			availableVersion: info.version ?? updateState.availableVersion,
 			progressPercent: 100,
-			message: "Restart Hubble to install the update.",
+			message: "Restart sudomd to install the update.",
 			lastCheckedAt: Date.now(),
 		});
 	});
@@ -1145,7 +1174,7 @@ async function collectWorkspaceFiles(
 			.relative(root, entryPath)
 			.split(path.sep)
 			.join("/");
-		if (relativePath === ".hubble" || relativePath.startsWith(".hubble/"))
+		if (relativePath === ".sudomd" || relativePath.startsWith(".sudomd/"))
 			continue;
 		if (entry.isDirectory()) {
 			await collectWorkspaceFiles(root, entryPath, glob, out, rules);
@@ -1406,7 +1435,7 @@ function registerIpc() {
 			await fs.mkdir(path.dirname(resolved), { recursive: true });
 			// Text is encoded in preload. Main only writes bytes so it cannot
 			// accidentally shorten UTF-8 content while crossing string encoders.
-			// See https://github.com/bholmesdev/hubble.md/issues/126 for the repro.
+			// See https://github.com/ahmedrowaihi/sudomd/issues/126 for the repro.
 			await fs.writeFile(resolved, Uint8Array.from(bytes));
 		},
 	);
@@ -1435,8 +1464,8 @@ function registerIpc() {
 	);
 
 	ipcMain.handle(
-		"desktop:detect-hubble-skills",
-		async (_event, { workspacePath }) => detectHubbleSkills(workspacePath),
+		"desktop:detect-sudomd-skills",
+		async (_event, { workspacePath }) => detectSudomdSkills(workspacePath),
 	);
 
 	ipcMain.handle(
@@ -1531,7 +1560,7 @@ function registerIpc() {
 	);
 
 	ipcMain.handle("desktop:open-file-picker", async (_event, options = {}) => {
-		const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+		const result = await showOpenDialog({
 			properties: ["openFile"],
 			defaultPath:
 				typeof options.defaultPath === "string"
@@ -1549,7 +1578,7 @@ function registerIpc() {
 	});
 
 	ipcMain.handle("desktop:open-folder-picker", async () => {
-		const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+		const result = await showOpenDialog({
 			properties: ["openDirectory"],
 			title: "Open Folder",
 		});
@@ -1561,7 +1590,7 @@ function registerIpc() {
 	ipcMain.handle("desktop:create-folder-picker", async () => {
 		// macOS save dialog supports naming a new folder inline via createDirectory.
 		if (process.platform === "darwin") {
-			const result = await dialog.showSaveDialog(mainWindow ?? undefined, {
+			const result = await showSaveDialog({
 				title: "New Folder",
 				nameFieldLabel: "Folder name:",
 				buttonLabel: "Create",
@@ -1575,7 +1604,7 @@ function registerIpc() {
 		}
 		// Linux/Windows: the native directory picker has a "New Folder" button,
 		// so create + select happen there and the path opens as the workspace.
-		const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+		const result = await showOpenDialog({
 			title: "New Folder",
 			buttonLabel: "Create",
 			properties: ["openDirectory", "createDirectory"],
@@ -1590,7 +1619,7 @@ function registerIpc() {
 	ipcMain.handle(
 		"desktop:save-markdown-file-picker",
 		async (_event, options = {}) => {
-			const result = await dialog.showSaveDialog(mainWindow ?? undefined, {
+			const result = await showSaveDialog({
 				defaultPath:
 					typeof options.defaultPath === "string"
 						? options.defaultPath
@@ -1710,6 +1739,9 @@ function registerIpc() {
 		autoUpdater.quitAndInstall(false, true);
 	});
 
+	registerBasecampIpc(ipcMain);
+	registerThemeIpc(ipcMain);
+
 	ipcMain.handle("desktop:set-menu-state", (_event, state: MenuState) => {
 		menuState = {
 			hasWorkspace: state.hasWorkspace === true,
@@ -1724,7 +1756,7 @@ function registerIpc() {
 
 protocol.registerSchemesAsPrivileged([
 	{
-		scheme: "hubble-asset",
+		scheme: "sudomd-asset",
 		privileges: {
 			secure: true,
 			supportFetchAPI: true,
@@ -1761,7 +1793,7 @@ if (!singleInstanceLock) {
 		await loadGrants();
 		if (launchWorkspacePath) grantRoot(launchWorkspacePath);
 		await saveGrants();
-		protocol.handle("hubble-asset", (request) => {
+		protocol.handle("sudomd-asset", (request) => {
 			const url = new URL(request.url);
 			const filePath = assertGranted(assetPathFromUrl(url));
 			// HTML apps use this protocol as their base URL, so relative

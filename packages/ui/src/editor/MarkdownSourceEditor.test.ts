@@ -4,7 +4,7 @@ import { Editor } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import StarterKit from "@tiptap/starter-kit";
 import { afterEach, describe, expect, it } from "vitest";
-import { HubbleCodeBlock } from "./CodeBlockExtension";
+import { SudomdCodeBlock } from "./CodeBlockExtension";
 import {
 	markdownFromSourceDoc,
 	sourceDocFromMarkdown,
@@ -41,7 +41,7 @@ describe("MarkdownSourceEditor document helpers", () => {
 			extensions: [
 				SourceDocument,
 				StarterKit.configure({ codeBlock: false, document: false }),
-				HubbleCodeBlock.configure({ defaultLanguage: "md" }),
+				SudomdCodeBlock.configure({ defaultLanguage: "md" }),
 			],
 			content: sourceDocFromMarkdown(markdown),
 		});
@@ -56,7 +56,7 @@ describe("MarkdownSourceEditor document helpers", () => {
 			extensions: [
 				SourceDocument,
 				StarterKit.configure({ codeBlock: false, document: false }),
-				HubbleCodeBlock.configure({ defaultLanguage: "md" }),
+				SudomdCodeBlock.configure({ defaultLanguage: "md" }),
 			],
 			content: sourceDocFromMarkdown("before"),
 		});

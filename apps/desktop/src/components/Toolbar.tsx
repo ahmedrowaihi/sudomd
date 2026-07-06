@@ -1,21 +1,20 @@
 import { Menu } from "@base-ui/react/menu";
-import {
-	Button,
-	formatShortcut,
-	Toolbar as SharedToolbar,
-} from "@hubble.md/ui";
 import { useStoreValue } from "@simplestack/store/react";
+import { Button, formatShortcut, Toolbar as SharedToolbar } from "@sudomd/ui";
 import { type CSSProperties, useEffect, useState } from "react";
 import { toast } from "sonner";
 import MingcuteArrowLeftLine from "~icons/mingcute/arrow-left-line";
 import MingcuteArrowRightLine from "~icons/mingcute/arrow-right-line";
+import MingcuteClipboardLine from "~icons/mingcute/clipboard-line";
 import MingcuteCodeLine from "~icons/mingcute/code-line";
 import MingcuteCopy2Line from "~icons/mingcute/copy-2-line";
+import MingcuteFileImportLine from "~icons/mingcute/file-import-line";
 import MingcuteFolderOpenLine from "~icons/mingcute/folder-open-line";
 import MingcuteMore2Line from "~icons/mingcute/more-2-line";
 import MingcuteTerminalLine from "~icons/mingcute/terminal-line";
 import { desktopApi } from "../desktopApi";
 import { isChangelogPath } from "../lib/changelogNote";
+import { copyDocumentForBasecamp } from "../lib/basecampClipboard";
 import { copyText } from "../lib/clipboard";
 import { hasMarkdownExtension } from "../lib/filePath";
 import { revealFileLabel } from "../lib/revealFile";
@@ -35,6 +34,7 @@ import {
 	viewerStore,
 	workspacePathStore,
 } from "../store/state";
+import { BasecampInsertDialog } from "./BasecampInsertDialog";
 
 const dragRegionStyle = {
 	WebkitAppRegion: "drag",
@@ -133,6 +133,9 @@ function NavigationControls() {
 	);
 }
 
+const menuItemClass =
+	"flex w-full cursor-pointer items-center gap-2 rounded-sm [padding-block:0.375rem] [padding-inline:0.5rem] text-start text-[11px] outline-hidden select-none data-highlighted:bg-accent";
+
 function NoteActionsMenu({
 	path,
 	canChatAboutNote,
@@ -155,72 +158,110 @@ function NoteActionsMenu({
 		await copyText(path, "File path");
 	}
 
+	const [insertOpen, setInsertOpen] = useState(false);
+
+	async function copyForBasecamp() {
+		try {
+			const { diagramCount } = await copyDocumentForBasecamp(
+				viewerStore.get().content,
+			);
+			toast.success("Copied for Basecamp", {
+				description:
+					diagramCount > 0
+						? `Paste into Basecamp, then copy each of the ${diagramCount} diagram image${diagramCount > 1 ? "s" : ""} from its preview into the placeholder${diagramCount > 1 ? "s" : ""}.`
+						: "Paste into a Basecamp document, message, or comment.",
+			});
+		} catch {
+			toast.error("Failed to copy for Basecamp");
+		}
+	}
+
 	return (
-		<Menu.Root>
-			<Menu.Trigger
-				render={
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Note actions"
-						title="Note actions"
-					/>
-				}
-			>
-				<MingcuteMore2Line className="size-4" />
-			</Menu.Trigger>
-			<Menu.Portal>
-				<Menu.Positioner
-					align="end"
-					side="bottom"
-					sideOffset={4}
-					className="isolate z-50"
+		<>
+			<Menu.Root>
+				<Menu.Trigger
+					render={
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							aria-label="Note actions"
+							title="Note actions"
+						/>
+					}
 				>
-					<Menu.Popup className="z-50 w-52 origin-(--transform-origin) rounded-sm border border-border bg-popover p-1 text-[11px] text-popover-foreground outline-hidden transition-[transform,opacity] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
-						{canChatAboutNote && (
+					<MingcuteMore2Line className="size-4" />
+				</Menu.Trigger>
+				<Menu.Portal>
+					<Menu.Positioner
+						align="end"
+						side="bottom"
+						sideOffset={4}
+						className="isolate z-50"
+					>
+						<Menu.Popup className="z-50 w-52 origin-(--transform-origin) rounded-sm border border-border bg-popover p-1 text-[11px] text-popover-foreground outline-hidden transition-[transform,opacity] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+							{canChatAboutNote && (
+								<Menu.Item
+									className={menuItemClass}
+									onClick={requestChatAboutNote}
+								>
+									<MingcuteTerminalLine className="size-3 shrink-0" />
+									<span className="min-w-0 flex-1">Chat about this note</span>
+									<ShortcutHint spec="CmdOrCtrl+Shift+J" />
+								</Menu.Item>
+							)}
+							{hasMarkdownExtension(path) && (
+								<Menu.Item
+									className={menuItemClass}
+									onClick={() =>
+										setViewerMode(isSourceMode ? "rich" : "source")
+									}
+								>
+									<MingcuteCodeLine className="size-3 shrink-0" />
+									<span className="min-w-0 flex-1">
+										{isSourceMode ? "Edit rich text" : "Edit source"}
+									</span>
+									<ShortcutHint spec="Alt+CmdOrCtrl+U" />
+								</Menu.Item>
+							)}
 							<Menu.Item
-								className="flex w-full cursor-pointer items-center gap-2 rounded-sm [padding-block:0.375rem] [padding-inline:0.5rem] text-start text-[11px] outline-hidden select-none data-highlighted:bg-accent"
-								onClick={requestChatAboutNote}
+								className={menuItemClass}
+								onClick={() => void revealFile()}
 							>
-								<MingcuteTerminalLine className="size-3 shrink-0" />
-								<span className="min-w-0 flex-1">Chat about this note</span>
-								<ShortcutHint spec="CmdOrCtrl+Shift+J" />
-							</Menu.Item>
-						)}
-						{hasMarkdownExtension(path) && (
-							<Menu.Item
-								className="flex w-full cursor-pointer items-center gap-2 rounded-sm [padding-block:0.375rem] [padding-inline:0.5rem] text-start text-[11px] outline-hidden select-none data-highlighted:bg-accent"
-								onClick={() => setViewerMode(isSourceMode ? "rich" : "source")}
-							>
-								<MingcuteCodeLine className="size-3 shrink-0" />
+								<MingcuteFolderOpenLine className="size-3 shrink-0" />
 								<span className="min-w-0 flex-1">
-									{isSourceMode ? "Edit rich text" : "Edit source"}
+									{revealFileLabel(desktopApi.platform)}
 								</span>
-								<ShortcutHint spec="Alt+CmdOrCtrl+U" />
+								<ShortcutHint spec="CmdOrCtrl+Alt+R" />
 							</Menu.Item>
-						)}
-						<Menu.Item
-							className="flex w-full cursor-pointer items-center gap-2 rounded-sm [padding-block:0.375rem] [padding-inline:0.5rem] text-start text-[11px] outline-hidden select-none data-highlighted:bg-accent"
-							onClick={() => void revealFile()}
-						>
-							<MingcuteFolderOpenLine className="size-3 shrink-0" />
-							<span className="min-w-0 flex-1">
-								{revealFileLabel(desktopApi.platform)}
-							</span>
-							<ShortcutHint spec="CmdOrCtrl+Alt+R" />
-						</Menu.Item>
-						<Menu.Item
-							className="flex w-full cursor-pointer items-center gap-2 rounded-sm [padding-block:0.375rem] [padding-inline:0.5rem] text-start text-[11px] outline-hidden select-none data-highlighted:bg-accent"
-							onClick={() => void copyFilePath()}
-						>
-							<MingcuteCopy2Line className="size-3 shrink-0" />
-							<span className="min-w-0 flex-1">Copy file path</span>
-							<ShortcutHint spec="CmdOrCtrl+Shift+C" />
-						</Menu.Item>
-					</Menu.Popup>
-				</Menu.Positioner>
-			</Menu.Portal>
-		</Menu.Root>
+							<Menu.Item
+								className={menuItemClass}
+								onClick={() => void copyFilePath()}
+							>
+								<MingcuteCopy2Line className="size-3 shrink-0" />
+								<span className="min-w-0 flex-1">Copy file path</span>
+								<ShortcutHint spec="CmdOrCtrl+Shift+C" />
+							</Menu.Item>
+							<Menu.Item
+								className={menuItemClass}
+								onClick={() => void copyForBasecamp()}
+							>
+								<MingcuteClipboardLine className="size-3 shrink-0" />
+								<span className="min-w-0 flex-1">Copy for Basecamp</span>
+							</Menu.Item>
+							<Menu.Item
+								className={menuItemClass}
+								onClick={() => setInsertOpen(true)}
+							>
+								<MingcuteFileImportLine className="size-3 shrink-0" />
+								<span className="min-w-0 flex-1">Insert from Basecamp…</span>
+							</Menu.Item>
+						</Menu.Popup>
+					</Menu.Positioner>
+				</Menu.Portal>
+			</Menu.Root>
+
+			<BasecampInsertDialog open={insertOpen} onOpenChange={setInsertOpen} />
+		</>
 	);
 }
 

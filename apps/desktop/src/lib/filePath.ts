@@ -1,5 +1,6 @@
 const MARKDOWN_EXTENSION_RE = /\.(md|markdown|mdown)$/i;
 const HTML_EXTENSION_RE = /\.html?$/i;
+const JSON_EXTENSION_RE = /\.json$/i;
 
 export function dirname(filePath: string): string | null {
 	const forwardSlash = filePath.lastIndexOf("/");
@@ -28,12 +29,16 @@ export function hasHtmlExtension(path: string): boolean {
 	return HTML_EXTENSION_RE.test(path);
 }
 
+export function hasJsonExtension(path: string): boolean {
+	return JSON_EXTENSION_RE.test(path);
+}
+
 export function hasDocumentExtension(path: string): boolean {
 	return hasMarkdownExtension(path) || hasHtmlExtension(path);
 }
 
 export function isHiddenSidebarFolderName(name: string): boolean {
-	return name === ".hubble" || name.endsWith(".assets");
+	return name === ".sudomd" || name.endsWith(".assets");
 }
 
 export function withMarkdownExtension(path: string): string {

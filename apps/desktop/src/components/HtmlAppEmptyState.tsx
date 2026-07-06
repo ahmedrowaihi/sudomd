@@ -1,18 +1,18 @@
-import { Button } from "@hubble.md/ui";
+import { Button } from "@sudomd/ui";
 import { useEffect, useState } from "react";
 import MingcuteCheckCircleFill from "~icons/mingcute/check-circle-fill";
 import MingcuteCopy2Line from "~icons/mingcute/copy-2-line";
 import MingcuteRightLine from "~icons/mingcute/right-line";
+import { desktopApi } from "../desktopApi";
 import { copyText } from "../lib/clipboard";
 import { dirname } from "../lib/filePath";
-import { hasHubbleSkillsInstalled } from "../lib/hubbleSkills";
 import { tildePath } from "../lib/tildePath";
 
-const INSTALL_COMMAND = "npx skills add bholmesdev/hubble-skills -g";
+const INSTALL_COMMAND = "npx skills add ahmedrowaihi/sudomd-skills -g";
 const SKILLS_POLL_INTERVAL_MS = 2000;
 
 function buildPrompt(filePath: string): string {
-	return `Build a Hubble HTML app at ${filePath} that...`;
+	return `Build a Sudomd HTML app at ${filePath} that...`;
 }
 
 export function HtmlAppEmptyState({
@@ -44,7 +44,7 @@ export function HtmlAppEmptyState({
 		if (skillsInstalled) return;
 		let active = true;
 		const check = () => {
-			void hasHubbleSkillsInstalled(notesPath).then((installed) => {
+			void desktopApi.detectSudomdSkills(notesPath).then((installed) => {
 				if (!active || !installed) return;
 				setSkillsInstalled(true);
 				setSetupExpandedOverride(null);

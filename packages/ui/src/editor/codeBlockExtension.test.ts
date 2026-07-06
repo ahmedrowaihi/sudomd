@@ -4,7 +4,7 @@ import { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import { afterEach, describe, expect, it } from "vitest";
-import { HubbleCodeBlock } from "./CodeBlockExtension";
+import { SudomdCodeBlock } from "./CodeBlockExtension";
 
 const editors: Editor[] = [];
 
@@ -70,7 +70,7 @@ function createCodeBlockEditor(
 ) {
 	const editor = new Editor({
 		element: document.createElement("div"),
-		extensions: [StarterKit.configure({ codeBlock: false }), HubbleCodeBlock],
+		extensions: [StarterKit.configure({ codeBlock: false }), SudomdCodeBlock],
 		content: {
 			type: "doc",
 			content: [

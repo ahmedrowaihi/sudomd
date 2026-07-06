@@ -5,8 +5,8 @@ import {
 	TextSelection,
 	type Transaction,
 } from "@tiptap/pm/state";
-export const FOCUS_LINK_POPOVER_EVENT = "hubble:focus-link-popover";
-export const LINK_CREATION_REQUESTED_EVENT = "hubble:link-creation-requested";
+export const FOCUS_LINK_POPOVER_EVENT = "sudomd:focus-link-popover";
+export const LINK_CREATION_REQUESTED_EVENT = "sudomd:link-creation-requested";
 
 function toggleLinkAtSelection() {
 	return () =>

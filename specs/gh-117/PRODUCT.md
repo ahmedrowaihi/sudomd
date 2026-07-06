@@ -26,7 +26,7 @@ The sidebar helps only when the user already knows the file name and can spot it
 
 ## Design Context
 
-The entry point is a modal command palette, not a sidebar panel. Hubble already has two `cmdk`-driven command menus — the Slash Command menu and the `CmdOrCtrl+/` Format Command menu — so the interaction vocabulary (type to filter, arrow keys to move, `Enter` to run, `Escape` to dismiss) is established. Global search reuses it at app scope instead of editor scope.
+The entry point is a modal command palette, not a sidebar panel. Sudomd already has two `cmdk`-driven command menus — the Slash Command menu and the `CmdOrCtrl+/` Format Command menu — so the interaction vocabulary (type to filter, arrow keys to move, `Enter` to run, `Escape` to dismiss) is established. Global search reuses it at app scope instead of editor scope.
 
 `CmdOrCtrl+F` is already the in-note Find bar and `CmdOrCtrl+K` is already link insertion. `CmdOrCtrl+P` is free, and carries the "quick open" meaning from other editors.
 

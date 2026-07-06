@@ -5,7 +5,7 @@ describe("prepareChangelogMarkdown", () => {
 	it("drops the preamble, Unreleased, and empty subheads; keeps entries verbatim", () => {
 		const raw = `# Changelog
 
-All notable user-facing changes to Hubble.
+All notable user-facing changes to Sudomd.
 
 ## [Unreleased]
 
@@ -19,13 +19,13 @@ All notable user-facing changes to Hubble.
 
 ### Added
 
-- Linux builds. Thanks [@ricardoraposo](https://github.com/ricardoraposo)! [#151](https://github.com/bholmesdev/hubble.md/pull/151)
+- Linux builds. Thanks [@ricardoraposo](https://github.com/ricardoraposo)! [#151](https://github.com/ahmedrowaihi/sudomd/pull/151)
 
 ### Changed
 
 ### Fixed
 
-- Copying linked rich text. [#149](https://github.com/bholmesdev/hubble.md/issues/149)
+- Copying linked rich text. [#149](https://github.com/ahmedrowaihi/sudomd/issues/149)
 
 ## [0.1.18] - 2026-07-07
 
@@ -34,17 +34,17 @@ All notable user-facing changes to Hubble.
 - Source mode.
 `;
 
-		expect(prepareChangelogMarkdown(raw)).toBe(`# What's new in Hubble
+		expect(prepareChangelogMarkdown(raw)).toBe(`# What's new in Sudomd
 
 ## Latest — [0.1.19] - 2026-07-11
 
 ### Added
 
-- Linux builds. Thanks [@ricardoraposo](https://github.com/ricardoraposo)! [#151](https://github.com/bholmesdev/hubble.md/pull/151)
+- Linux builds. Thanks [@ricardoraposo](https://github.com/ricardoraposo)! [#151](https://github.com/ahmedrowaihi/sudomd/pull/151)
 
 ### Fixed
 
-- Copying linked rich text. [#149](https://github.com/bholmesdev/hubble.md/issues/149)
+- Copying linked rich text. [#149](https://github.com/ahmedrowaihi/sudomd/issues/149)
 
 ---
 

@@ -4,7 +4,7 @@ import {
 	isSimplePropertyKey,
 	parseMarkdownFrontMatter,
 	serializeFrontMatter,
-} from "@hubble.md/editor";
+} from "@sudomd/editor";
 
 type PropertyValue = string | number | boolean | string[];
 

@@ -28,14 +28,6 @@ coverage/
 **/.astro/
 **/*.tsbuildinfo
 
-# convex tsc build artifacts (next to source, not in _generated/)
-packages/sync-backend/convex/*.d.ts
-packages/sync-backend/convex/*.d.ts.map
-packages/sync-backend/convex/*.js
-packages/sync-backend/convex/*.js.map
-!packages/sync-backend/convex/_generated/**
-
-
 # tauri / rust build artifacts
 **/src-tauri/target/
 **/src-tauri/gen/schemas/

@@ -105,6 +105,18 @@ export type WorkspaceConfig = {
 	pinnedNotes: string[];
 };
 
+export type {
+	BasecampComment,
+	BasecampFetchResult,
+	BasecampSearchItem,
+	BasecampSearchResult,
+} from "./basecampTypes";
+
+import type {
+	BasecampFetchResult,
+	BasecampSearchResult,
+} from "./basecampTypes";
+
 export type DesktopApi = {
 	platform: DesktopPlatform;
 	homeDir: string;
@@ -122,7 +134,7 @@ export type DesktopApi = {
 	searchFileContents(
 		input: SearchFileContentsInput,
 	): Promise<SearchFileContentsOutput>;
-	detectHubbleSkills(workspacePath: string): Promise<boolean>;
+	detectSudomdSkills(workspacePath: string): Promise<boolean>;
 	writeFileText(path: string, content: string): Promise<void>;
 	createFolder(path: string): Promise<void>;
 	renameFile(fromPath: string, toPath: string): Promise<void>;
@@ -170,6 +182,10 @@ export type DesktopApi = {
 	onMenuCopyAsMarkdown(callback: () => void): Unsubscribe;
 	onMenuShowWorkspaceSwitcher(callback: () => void): Unsubscribe;
 	onMenuGoToFile(callback: () => void): Unsubscribe;
+	onMenuShowShortcuts(callback: () => void): Unsubscribe;
+	fetchBasecamp(url: string): Promise<BasecampFetchResult>;
+	searchBasecamp(query: string): Promise<BasecampSearchResult>;
+	setNativeTheme(source: "light" | "dark" | "system"): Promise<void>;
 	onMenuSyncWorkspace(callback: () => void): Unsubscribe;
 	onMenuToggleTerminal(callback: () => void): Unsubscribe;
 	onMenuGoBack(callback: () => void): Unsubscribe;

@@ -26,7 +26,7 @@ Users can follow wiki links and relative Markdown links into other files, but ca
 ### Leave a dirty note via history
 
 1. The user edits the open file without resolving an external conflict, then chooses Back or Forward.
-2. Hubble saves the current file with normal save behavior, then navigates.
+2. Sudomd saves the current file with normal save behavior, then navigates.
 3. If the open file already has an external disk conflict, or save discovers one, navigation does not run; the user stays on the current file and sees existing conflict UI where applicable.
 4. While a history navigation is in progress, Back and Forward are unavailable (toolbar and menu). There is no optimistic transition.
 
@@ -48,7 +48,7 @@ Users can follow wiki links and relative Markdown links into other files, but ca
 
 ### Missing files
 
-1. On app or folder restore, if the remembered last-opened path is missing on disk, Hubble clears the open document quietly: no error toast, no failure banner, and the bad last-opened entry is dropped.
+1. On app or folder restore, if the remembered last-opened path is missing on disk, Sudomd clears the open document quietly: no error toast, no failure banner, and the bad last-opened entry is dropped.
 2. If Back or Forward would land on a missing path, that entry is removed and navigation continues in the same direction until a file loads or no further step exists. A toast appears only if the whole move fails.
 3. An intentional open of a missing path (broken link, picker race) still shows the existing open-failure toast and does not add a history entry.
 
@@ -56,7 +56,7 @@ Users can follow wiki links and relative Markdown links into other files, but ca
 
 1. Renaming or moving a file or folder rewrites matching history paths the same way the open path and last-opened bookkeeping already update.
 2. Deleting a file or folder removes matching history entries.
-3. Deleting the currently open document clears the editor (existing behavior) and clears the active history trail. The next successful open starts a new tip. Hubble does not auto-open a neighbor from history.
+3. Deleting the currently open document clears the editor (existing behavior) and clears the active history trail. The next successful open starts a new tip. Sudomd does not auto-open a neighbor from history.
 
 ### Toolbar, shortcuts, and menu
 

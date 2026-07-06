@@ -3,7 +3,7 @@ import Document from "@tiptap/extension-document";
 import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { HubbleCodeBlock } from "./CodeBlockExtension";
+import { SudomdCodeBlock } from "./CodeBlockExtension";
 import {
 	flushPendingSave,
 	type PendingSave,
@@ -17,6 +17,7 @@ const SourceDocument = Document.extend({ content: "codeBlock" });
 export type MarkdownSourceEditorProps = {
 	path: string;
 	initialMarkdown: string;
+	language?: string;
 	saveDebounceMs?: number;
 	onLocalChange: (path: string, markdown: string) => void;
 	onSave: (path: string, markdown: string) => void | Promise<void>;
@@ -26,6 +27,7 @@ export type MarkdownSourceEditorProps = {
 export function MarkdownSourceEditor({
 	path,
 	initialMarkdown,
+	language = "md",
 	saveDebounceMs = DEFAULT_SAVE_DEBOUNCE_MS,
 	onLocalChange,
 	onSave,
@@ -56,9 +58,9 @@ export function MarkdownSourceEditor({
 		extensions: [
 			SourceDocument,
 			StarterKit.configure({ codeBlock: false, document: false }),
-			HubbleCodeBlock.configure({ defaultLanguage: "md" }),
+			SudomdCodeBlock.configure({ defaultLanguage: language }),
 		],
-		content: sourceDocFromMarkdown(initialMarkdown),
+		content: sourceDocFromMarkdown(initialMarkdown, language),
 		onUpdate: ({ editor: current }) => {
 			const markdown = markdownFromSourceDoc(current);
 			latestMarkdownRef.current = markdown;
@@ -82,10 +84,10 @@ export function MarkdownSourceEditor({
 		if (!editor) return;
 		if (initialMarkdown === latestMarkdownRef.current) return;
 		latestMarkdownRef.current = initialMarkdown;
-		editor.commands.setContent(sourceDocFromMarkdown(initialMarkdown), {
+		editor.commands.setContent(sourceDocFromMarkdown(initialMarkdown, language), {
 			emitUpdate: false,
 		});
-	}, [editor, initialMarkdown]);
+	}, [editor, initialMarkdown, language]);
 
 	useEffect(() => {
 		// Path changes flush the pending edit before the next document takes over.
@@ -111,13 +113,16 @@ export function MarkdownSourceEditor({
 	);
 }
 
-export function sourceDocFromMarkdown(markdown: string): JSONContent {
+export function sourceDocFromMarkdown(
+	markdown: string,
+	language = "md",
+): JSONContent {
 	return {
 		type: "doc",
 		content: [
 			{
 				type: "codeBlock",
-				attrs: { language: "md" },
+				attrs: { language },
 				content: markdown.length > 0 ? [{ type: "text", text: markdown }] : [],
 			},
 		],

@@ -6,9 +6,9 @@ if (!pnpmCli) {
 }
 
 const builds = [
-	["--filter", "@hubble.md/ui", "run", "build"],
-	["--filter", "@hubble.md/desktop", "run", "build"],
-	["--filter", "@hubble.md/www", "run", "build"],
+	["--filter", "@sudomd/ui", "run", "build"],
+	["--filter", "@sudomd/desktop", "run", "build"],
+	["--filter", "@sudomd/www", "run", "build"],
 ];
 
 for (const args of builds) {

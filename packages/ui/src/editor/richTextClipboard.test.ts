@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { LinkExtension, RichTextClipboardExtension } from "@hubble.md/editor";
+import { LinkExtension, RichTextClipboardExtension } from "@sudomd/editor";
 import { Editor, type JSONContent } from "@tiptap/core";
 import { DOMParser } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
@@ -28,7 +28,7 @@ describe("rich text clipboard serialization", () => {
 		expect(html).toContain(">OpenAI</a>");
 	});
 
-	it("keeps Hubble link metadata on copied wiki links", () => {
+	it("keeps Sudomd link metadata on copied wiki links", () => {
 		const editor = createEditor(
 			docWithLinkedText("Project note", "Notes/Project.md", {
 				kind: "wiki",
