@@ -186,6 +186,36 @@ describe("TerminalPanel", () => {
 		expect(api.terminalStart).toHaveBeenCalledWith("/workspace-a");
 	});
 
+	it("shows an error state when the shell backend fails to load", async () => {
+		const { api } = createDesktopApi();
+		const { appStore, TerminalPanel } = await loadTerminalPanel(api);
+
+		api.terminalStart.mockRejectedValueOnce(
+			new Error("The bundled shell module (node-pty) failed to load."),
+		);
+
+		appStore.set((state) => ({
+			...state,
+			workspace: {
+				...state.workspace,
+				workspacePath: "/workspace-a",
+			},
+			ui: {
+				...state.ui,
+				isTerminalOpen: true,
+			},
+		}));
+
+		await act(async () => {
+			root.render(<TerminalPanel />);
+			await flush();
+		});
+
+		expect(container.textContent).toContain("Terminal unavailable");
+		expect(appStore.get().ui.isTerminalOpen).toBe(true);
+		expect(getSessionButtons(container)).toHaveLength(0);
+	});
+
 	it("drops a session that finishes starting after a workspace switch", async () => {
 		const { api } = createDesktopApi();
 		const { appStore, TerminalPanel } = await loadTerminalPanel(api);

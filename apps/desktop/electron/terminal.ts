@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -10,7 +9,6 @@ export type TerminalSession = {
 	write: (data: string) => void;
 	resize: (cols: number, rows: number) => void;
 	kill: () => void;
-	isFallback: boolean;
 };
 
 const sessions: Record<string, TerminalSession> = {};
@@ -26,15 +24,6 @@ function getDefaultShell() {
 		return process.env.COMSPEC || "powershell.exe";
 	}
 	return process.env.SHELL || "/bin/sh";
-}
-
-function displayPath(filePath: string) {
-	const homeDir = os.homedir();
-	if (filePath === homeDir) return "~";
-	if (filePath.startsWith(`${homeDir}${path.sep}`)) {
-		return `~${filePath.slice(homeDir.length)}`;
-	}
-	return filePath;
 }
 
 function ensureSpawnHelperExecutable() {
@@ -53,7 +42,7 @@ function ensureSpawnHelperExecutable() {
 			}
 		}
 	} catch {
-		// Best effort; pty.spawn failures fall back to child_process below.
+		// Best effort; a failed pty.spawn surfaces as terminal-start rejecting.
 	}
 }
 
@@ -63,7 +52,9 @@ function createPtySession(
 	onExit: () => void,
 ): TerminalSession | null {
 	try {
-		// Attempt to load node-pty. It's an optional dependency, so it might fail.
+		// node-pty is a native module: require or spawn can fail when its
+		// prebuilt binary is missing or built for a different ABI. Fail soft so
+		// terminal-start can reject with a readable error instead of crashing.
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const pty = require("node-pty");
 		ensureSpawnHelperExecutable();
@@ -101,69 +92,11 @@ function createPtySession(
 			kill: () => {
 				ptyProcess.kill();
 			},
-			isFallback: false,
 		};
 	} catch (error) {
-		console.warn(
-			"Failed to load node-pty, falling back to child_process:",
-			error,
-		);
+		console.warn("Failed to start a node-pty shell:", error);
 		return null;
 	}
-}
-
-function createFallbackSession(
-	cwd: string,
-	onData: (data: string) => void,
-	onExit: () => void,
-): TerminalSession {
-	const shell = getDefaultShell();
-	// Spawn standard shell as a fallback.
-	// Interactive CLI apps won't work perfectly, but basic scripts will.
-	const cp = spawn(shell, {
-		cwd,
-		env: { ...process.env, TERM: "xterm-color" },
-		stdio: ["pipe", "pipe", "pipe"],
-		shell: true,
-	});
-
-	if (cp.stdout) {
-		cp.stdout.on("data", (data: Buffer) => {
-			onData(data.toString("utf8"));
-		});
-	}
-
-	if (cp.stderr) {
-		cp.stderr.on("data", (data: Buffer) => {
-			onData(data.toString("utf8"));
-		});
-	}
-
-	cp.on("exit", () => {
-		onExit();
-	});
-
-	cp.on("error", (err) => {
-		onData(`\r\n[Terminal Error]: ${err.message}\r\n`);
-		onExit();
-	});
-
-	return {
-		id: "",
-		history: "",
-		write: (data: string) => {
-			if (cp.stdin?.writable) {
-				cp.stdin.write(data);
-			}
-		},
-		resize: (_cols: number, _rows: number) => {
-			// No-op for standard child_process
-		},
-		kill: () => {
-			cp.kill();
-		},
-		isFallback: true,
-	};
 }
 
 export function setupTerminalIpc(
@@ -187,18 +120,11 @@ export function setupTerminalIpc(
 
 			session = createPtySession(cwd, onData, onExit);
 			if (!session) {
-				session = createFallbackSession(cwd, onData, onExit);
+				throw new Error("The bundled shell module (node-pty) failed to load.");
 			}
 
 			session.id = sessionId;
 			sessions[sessionId] = session;
-
-			if (session.isFallback) {
-				onData(
-					"\r\n\x1b[33m[Warning] Running in Fallback Mode (no PTY). Interactive apps (like vim) may not render correctly.\x1b[0m\r\n\n",
-				);
-				onData(`${displayPath(cwd)}> `); // Fake a prompt for fallback
-			}
 
 			return sessionId;
 		},

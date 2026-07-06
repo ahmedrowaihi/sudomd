@@ -163,6 +163,7 @@ export function TerminalPanel() {
 		null,
 	);
 	const [renameDraft, setRenameDraft] = useState("");
+	const [startError, setStartError] = useState<string | null>(null);
 	const isInitializingRef = useRef(false);
 	const suppressAutoCloseRef = useRef(false);
 	const previousSessionCountRef = useRef(0);
@@ -233,6 +234,7 @@ export function TerminalPanel() {
 	}, [isOpen, sessions.length, workspacePath]);
 
 	const handleNewSession = async () => {
+		setStartError(null);
 		try {
 			while (true) {
 				const requestedWorkspacePath = workspacePathStore.get();
@@ -252,6 +254,11 @@ export function TerminalPanel() {
 				void desktopApi.terminalStop(sessionId);
 				if (!terminalOpenStore.get()) return;
 			}
+		} catch (error) {
+			console.error("Failed to start terminal session:", error);
+			setStartError(
+				"Terminal unavailable. The bundled shell module failed to load.",
+			);
 		} finally {
 			isInitializingRef.current = false;
 		}
@@ -405,8 +412,13 @@ export function TerminalPanel() {
 					</div>
 				))}
 				{sessions.length === 0 && (
-					<div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-						No active terminal sessions.
+					<div
+						className={cn(
+							"flex h-full items-center justify-center text-sm",
+							startError ? "text-destructive" : "text-muted-foreground",
+						)}
+					>
+						{startError ?? "No active terminal sessions."}
 					</div>
 				)}
 			</div>
