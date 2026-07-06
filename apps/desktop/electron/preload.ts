@@ -1,6 +1,7 @@
 import os from "node:os";
 import { contextBridge, ipcRenderer } from "electron";
 import type { DesktopApi } from "../src/desktopApi/types";
+import { featurePreload } from "./featurePreload";
 
 function subscribe<T extends unknown[]>(
 	channel: string,
@@ -13,6 +14,7 @@ function subscribe<T extends unknown[]>(
 }
 
 let nextWatchId = 0;
+let nextAiChatId = 0;
 
 const desktopApi = {
 	platform: process.platform,
@@ -30,8 +32,8 @@ const desktopApi = {
 		}),
 	readFileText: (path) =>
 		ipcRenderer.invoke("desktop:read-file-text", { path }),
-	detectHubbleSkills: (workspacePath) =>
-		ipcRenderer.invoke("desktop:detect-hubble-skills", { workspacePath }),
+	detectSudomdSkills: (workspacePath) =>
+		ipcRenderer.invoke("desktop:detect-sudomd-skills", { workspacePath }),
 	writeFileText: (path, content) => {
 		// Encode in the renderer before IPC. Main should write these bytes as-is,
 		// because re-encoding the string there has truncated multibyte characters.
@@ -79,7 +81,7 @@ const desktopApi = {
 	resolvePath: (path) => ipcRenderer.invoke("desktop:resolve-path", { path }),
 	realPath: (path) => ipcRenderer.invoke("desktop:real-path", { path }),
 	toAssetUrl: (path) =>
-		`hubble-asset://local/?path=${encodeURIComponent(path)}`,
+		`sudomd-asset://local/?path=${encodeURIComponent(path)}`,
 	getLaunchFilePath: () => ipcRenderer.invoke("desktop:get-launch-file-path"),
 	getLaunchWorkspacePath: () =>
 		ipcRenderer.invoke("desktop:get-launch-workspace-path"),
@@ -105,6 +107,29 @@ const desktopApi = {
 		subscribe("desktop:menu-copy-as-markdown", callback),
 	onMenuShowWorkspaceSwitcher: (callback) =>
 		subscribe("desktop:menu-show-workspace-switcher", callback),
+	onMenuShowShortcuts: (callback) =>
+		subscribe("desktop:menu-show-shortcuts", callback),
+	sendAiChat: (input, onEvent) => {
+		const requestId = String(++nextAiChatId);
+		const unsubscribe = subscribe(
+			`desktop:ai-chat-event:${requestId}`,
+			(event: Parameters<typeof onEvent>[0]) => onEvent(event),
+		);
+		const done = ipcRenderer
+			.invoke("desktop:ai-chat-send", { requestId, ...input })
+			.finally(unsubscribe);
+		const cancel = () => {
+			void ipcRenderer.invoke("desktop:ai-chat-cancel", { requestId });
+		};
+		const replyPermission = (id: string, decision: string) => {
+			void ipcRenderer.invoke("desktop:ai-chat-permission-reply", {
+				id,
+				decision,
+			});
+		};
+		return { done, cancel, replyPermission };
+	},
+	...featurePreload,
 	onMenuSyncWorkspace: (callback) =>
 		subscribe("desktop:menu-sync-workspace", callback),
 	onMenuToggleTerminal: (callback) =>

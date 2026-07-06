@@ -3,7 +3,7 @@ name: Desktop Release
 on:
   push:
     tags:
-      - "desktop-v*"
+      - "sudomd-v*"
 
 jobs:
   release:
@@ -35,9 +35,9 @@ jobs:
       - name: Verify tag matches desktop version
         run: |
           VERSION="$(node -p "require('./apps/desktop/package.json').version")"
-          TAG="${GITHUB_REF_NAME#desktop-v}"
+          TAG="${GITHUB_REF_NAME#sudomd-v}"
           if [ "$VERSION" != "$TAG" ]; then
-            echo "Tag desktop-v$TAG does not match apps/desktop package version $VERSION"
+            echo "Tag sudomd-v$TAG does not match apps/desktop package version $VERSION"
             exit 1
           fi
 
@@ -50,18 +50,18 @@ jobs:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
-          pnpm --filter @hubble.md/desktop... --if-present build
+          pnpm --filter @sudomd/desktop... --if-present build
           if [ -z "$CSC_LINK" ]; then
             unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
             export CSC_IDENTITY_AUTO_DISCOVERY=false
           fi
-          pnpm --filter @hubble.md/desktop exec electron-builder --mac --publish always
+          pnpm --filter @sudomd/desktop exec electron-builder --mac --publish always
 
       - name: Attach changelog as release notes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="${GITHUB_REF_NAME#desktop-v}"
+          VERSION="${GITHUB_REF_NAME#sudomd-v}"
           awk -v ver="$VERSION" '
             $0 ~ "^## \\[" ver "\\]" { flag=1; next }
             /^## / && flag { flag=0 }
@@ -111,9 +111,9 @@ jobs:
       - name: Verify tag matches desktop version
         run: |
           VERSION="$(node -p "require('./apps/desktop/package.json').version")"
-          TAG="${GITHUB_REF_NAME#desktop-v}"
+          TAG="${GITHUB_REF_NAME#sudomd-v}"
           if [ "$VERSION" != "$TAG" ]; then
-            echo "Tag desktop-v$TAG does not match apps/desktop package version $VERSION"
+            echo "Tag sudomd-v$TAG does not match apps/desktop package version $VERSION"
             exit 1
           fi
 
@@ -121,8 +121,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          pnpm --filter @hubble.md/desktop... --if-present build
-          pnpm --filter @hubble.md/desktop exec electron-builder --linux --${{ matrix.arch }} --publish always
+          pnpm --filter @sudomd/desktop... --if-present build
+          pnpm --filter @sudomd/desktop exec electron-builder --linux --${{ matrix.arch }} --publish always
 
   release-windows:
     name: Build and publish desktop app (Windows ${{ matrix.arch }})
@@ -160,9 +160,9 @@ jobs:
         shell: bash
         run: |
           VERSION="$(node -p "require('./apps/desktop/package.json').version")"
-          TAG="${GITHUB_REF_NAME#desktop-v}"
+          TAG="${GITHUB_REF_NAME#sudomd-v}"
           if [ "$VERSION" != "$TAG" ]; then
-            echo "Tag desktop-v$TAG does not match apps/desktop package version $VERSION"
+            echo "Tag sudomd-v$TAG does not match apps/desktop package version $VERSION"
             exit 1
           fi
 
@@ -171,5 +171,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          pnpm --filter @hubble.md/desktop... --if-present build
-          pnpm --filter @hubble.md/desktop exec electron-builder --win --${{ matrix.arch }} --publish always
+          pnpm --filter @sudomd/desktop... --if-present build
+          pnpm --filter @sudomd/desktop exec electron-builder --win --${{ matrix.arch }} --publish always

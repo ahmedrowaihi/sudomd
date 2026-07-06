@@ -99,39 +99,72 @@ function blockToMarkdown(node: JSONContent): string {
 			return `<iframe src="${escapeHtmlAttr(src)}"></iframe>`;
 		}
 
-		case "table": {
-			const rows = (node.content ?? []).map((row, index) => {
-				const rowText = blockToMarkdown(row);
-				if (index === 0) {
-					const cellCount = row.content?.length ?? 1;
-					const separator = `|${Array(cellCount).fill("---").join("|")}|`;
-					return `${rowText}\n${separator}`;
-				}
-				return rowText;
-			});
-			return rows.join("\n");
-		}
-
-		case "tableRow": {
-			const cells = (node.content ?? []).map(blockToMarkdown);
-			return `| ${cells.join(" | ")} |`;
-		}
-
-		case "tableCell":
-		case "tableHeader": {
-			const cellContent = (node.content ?? [])
-				.map(blockToMarkdown)
-				.join("<br>")
-				.replace(/ {2}\n/g, "<br>");
-			return cellContent.replace(/\|/g, "\\|");
-		}
+		case "table":
+			return tableToMarkdown(node);
 
 		default:
 			return "";
 	}
 }
 
-const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|hubble-asset:)/i;
+type TableCellText = { text: string; align: string | null };
+
+function tableToMarkdown(node: JSONContent): string {
+	const rows = (node.content ?? []).filter((row) => row.type === "tableRow");
+	if (rows.length === 0) return "";
+
+	const grid = rows.map((row) =>
+		(row.content ?? []).map(
+			(cell): TableCellText => ({
+				text: cellText(cell),
+				align: typeof cell.attrs?.align === "string" ? cell.attrs.align : null,
+			}),
+		),
+	);
+	const columnCount = Math.max(...grid.map((cells) => cells.length));
+	const [header, ...body] = grid;
+	const aligns = Array.from(
+		{ length: columnCount },
+		(_, i) => header[i]?.align ?? null,
+	);
+
+	const lines = [
+		rowToMarkdown(header, columnCount),
+		delimiterRow(aligns),
+		...body.map((cells) => rowToMarkdown(cells, columnCount)),
+	];
+	return lines.join("\n");
+}
+
+function cellText(cell: JSONContent): string {
+	return (cell.content ?? [])
+		.map(blockToMarkdown)
+		.filter(Boolean)
+		.join(" ")
+		.replace(/\n+/g, " ")
+		.replace(/\|/g, "\\|")
+		.trim();
+}
+
+function rowToMarkdown(cells: TableCellText[], columnCount: number): string {
+	const filled = Array.from(
+		{ length: columnCount },
+		(_, i) => cells[i]?.text || " ",
+	);
+	return `| ${filled.join(" | ")} |`;
+}
+
+function delimiterRow(aligns: (string | null)[]): string {
+	const markers = aligns.map((align) => {
+		if (align === "left") return ":---";
+		if (align === "right") return "---:";
+		if (align === "center") return ":---:";
+		return "---";
+	});
+	return `| ${markers.join(" | ")} |`;
+}
+
+const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|sudomd-asset:)/i;
 const LOCAL_IFRAME_SRC = /^(\.{1,2}\/|[^:/\\]+(?:\/|$)).*\.html(?:[?#].*)?$/i;
 
 function isValidIframeEmbedSrc(src: string): boolean {
@@ -421,6 +454,18 @@ function nodeToMarkdown(node: JSONContent): string {
 				switch (mark.type) {
 					case "code":
 						text = `\`${text}\``;
+						break;
+					case "bold":
+						text = `**${text}**`;
+						break;
+					case "italic":
+						text = `*${text}*`;
+						break;
+					case "strike":
+						text = `~~${text}~~`;
+						break;
+					case "highlight":
+						text = `==${text}==`;
 						break;
 					case "link":
 						break;

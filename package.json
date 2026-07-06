@@ -1,37 +1,32 @@
 {
-	"name": "hubble-md",
+	"name": "sudomd-md",
 	"private": true,
 	"version": "0.0.0",
 	"packageManager": "pnpm@11.9.0",
-	"description": "Hubble.md monorepo",
+	"description": "Sudomd monorepo",
 	"license": "MIT",
-	"author": "Ben Holmes <hey@bholmes.dev>",
+	"author": "Ahmed Rowaihi <ahmedrowaihi1@gmail.com>",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/bholmesdev/hubble.md.git"
+		"url": "git+https://github.com/ahmedrowaihi/sudomd.git"
 	},
-	"homepage": "https://hubble.md",
-	"bugs": "https://github.com/bholmesdev/hubble.md/issues",
+	"homepage": "https://sudomd",
+	"bugs": "https://github.com/ahmedrowaihi/sudomd/issues",
 	"scripts": {
 		"check": "biome check .",
 		"check:fix": "biome check . --write",
 		"test": "pnpm -r --if-present test",
 		"typecheck": "pnpm -r --if-present typecheck",
 		"build": "pnpm check && pnpm -r --if-present build && pnpm typecheck",
-		"build:desktop": "pnpm --filter @hubble.md/desktop... --if-present build && pnpm --filter @hubble.md/desktop... --if-present typecheck",
-		"bundle:desktop:mac": "pnpm --filter @hubble.md/desktop... --if-present build && pnpm --filter @hubble.md/desktop bundle:mac",
-		"bundle:desktop:win": "pnpm --filter @hubble.md/desktop... --if-present build && pnpm --filter @hubble.md/desktop bundle:win",
-		"bundle:desktop:win:arm64": "pnpm --filter @hubble.md/desktop... --if-present build && pnpm --filter @hubble.md/desktop bundle:win:arm64",
-		"bundle:desktop:linux": "pnpm --filter @hubble.md/desktop... --if-present build && pnpm --filter @hubble.md/desktop bundle:linux",
-		"bundle:desktop:linux:arm64": "pnpm --filter @hubble.md/desktop... --if-present build && pnpm --filter @hubble.md/desktop bundle:linux:arm64",
-		"postinstall": "pnpm --filter @hubble.md/desktop exec install-electron",
-		"dev:desktop": "pnpm -r --parallel --stream --filter @hubble.md/desktop... --if-present dev",
-		"dev:desktop:debug": "HUBBLE_DESKTOP_ENABLE_CDP=1 pnpm -r --parallel --stream --filter @hubble.md/desktop... --if-present dev",
-		"dev:www": "pnpm -r --parallel --stream --filter \"./packages/**\" --if-present dev & pnpm --filter \"./apps/www\" dev",
-		"dev:web": "pnpm --filter \"./apps/web\" dev",
-		"dev:sync-backend": "pnpm --filter \"./packages/sync-backend\" exec convex dev",
-		"dev:cli": "pnpm --filter \"./packages/sync\" --filter \"./packages/cli\" --parallel --stream dev",
-		"hubble": "node packages/cli/dist/index.js"
+		"build:desktop": "pnpm --filter @sudomd/desktop... --if-present build && pnpm --filter @sudomd/desktop... --if-present typecheck",
+		"bundle:desktop:mac": "pnpm --filter @sudomd/desktop... --if-present build && pnpm --filter @sudomd/desktop bundle:mac",
+		"bundle:desktop:win": "pnpm --filter @sudomd/desktop... --if-present build && pnpm --filter @sudomd/desktop bundle:win",
+		"bundle:desktop:win:arm64": "pnpm --filter @sudomd/desktop... --if-present build && pnpm --filter @sudomd/desktop bundle:win:arm64",
+		"bundle:desktop:linux": "pnpm --filter @sudomd/desktop... --if-present build && pnpm --filter @sudomd/desktop bundle:linux",
+		"bundle:desktop:linux:arm64": "pnpm --filter @sudomd/desktop... --if-present build && pnpm --filter @sudomd/desktop bundle:linux:arm64",
+		"postinstall": "pnpm --filter @sudomd/desktop exec install-electron",
+		"dev:desktop": "pnpm -r --parallel --stream --filter @sudomd/desktop... --if-present dev",
+		"dev:desktop:debug": "SUDOMD_DESKTOP_ENABLE_CDP=1 pnpm -r --parallel --stream --filter @sudomd/desktop... --if-present dev"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.4"

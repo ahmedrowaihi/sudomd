@@ -51,7 +51,7 @@ const REFRESH_FILES_DEBOUNCE_MS = 250;
 const SELF_SAVE_TTL_MS = 5000;
 const missingPathErrorPattern = /\bENOENT\b|\bENOTDIR\b/;
 let refreshFilesTimer: ReturnType<typeof setTimeout> | null = null;
-// The active-file watcher also sees Hubble's own writes. If save A reaches disk
+// The active-file watcher also sees Sudomd's own writes. If save A reaches disk
 // after the editor already has draft B, that watcher event is not an external
 // conflict; it is just the disk baseline catching up to a save we started.
 const selfSaves = new Map<string, Map<string, number>>();
@@ -98,7 +98,7 @@ function errorMessage(err: unknown) {
 
 function refreshFilesAfterMissingPath(message: string) {
 	if (!missingPathErrorPattern.test(message)) return;
-	// Missing files usually mean the sidebar snapshot is stale because Hubble no
+	// Missing files usually mean the sidebar snapshot is stale because Sudomd no
 	// longer watches the whole workspace.
 	refreshFilesDebounced();
 }
@@ -443,6 +443,23 @@ export async function openWorkspace(path?: string) {
 	}
 
 	clearViewer();
+}
+
+export function forgetWorkspace(path: string) {
+	workspaceStore.set((state) => ({
+		...state,
+		recentWorkspaces: state.recentWorkspaces.filter((p) => p !== path),
+	}));
+}
+
+export function setWorkspaceName(path: string, name: string) {
+	const trimmed = name.trim();
+	workspaceStore.set((state) => {
+		const workspaceNames = { ...state.workspaceNames };
+		if (trimmed) workspaceNames[path] = trimmed;
+		else delete workspaceNames[path];
+		return { ...state, workspaceNames };
+	});
 }
 
 export function updateEditorContent(path: string, content: string) {

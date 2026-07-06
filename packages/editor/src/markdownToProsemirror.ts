@@ -5,12 +5,23 @@ import type {
 	RootContent,
 } from "hast";
 import { fromHtml } from "hast-util-from-html";
-import type { Content, Image, List, ListItem, Paragraph, Root } from "mdast";
+import type {
+	Content,
+	Image,
+	List,
+	ListItem,
+	Paragraph,
+	Root,
+	Table,
+	TableCell,
+	TableRow,
+} from "mdast";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import { type Plugin, unified } from "unified";
 import { visit } from "unist-util-visit";
 import { wikiDisplayNameForTarget } from "./markdownPath";
+import { remarkHighlight } from "./remarkHighlight";
 
 // Convert Markdown (string) -> TipTap JSONContent (ProseMirror document)
 export function markdownToTiptapDoc(markdown: string): JSONContent {
@@ -18,6 +29,7 @@ export function markdownToTiptapDoc(markdown: string): JSONContent {
 	const processor = unified()
 		.use(remarkParse)
 		.use(remarkGfm)
+		.use(remarkHighlight)
 		.use(remarkRemoveEmptyMarkers);
 	const parsed = processor.parse(input);
 	const tree = processor.runSync(parsed) as Root;
@@ -135,26 +147,8 @@ function blockToPM(node: Content): JSONContent[] {
 				},
 			];
 		}
-		case "table": {
-			const tableNode = node as import("mdast").Table;
-			return [
-				{
-					type: "table",
-					content: tableNode.children.map((row, rowIndex) => ({
-						type: "tableRow",
-						content: row.children.map((cell) => ({
-							type: rowIndex === 0 ? "tableHeader" : "tableCell",
-							content: [
-								{
-									type: "paragraph",
-									content: inlineToPM(cell.children ?? []),
-								},
-							],
-						})),
-					})),
-				},
-			];
-		}
+		case "table":
+			return tableToPM(node as Table);
 		case "image": {
 			return imageToPM(node as Image);
 		}
@@ -190,7 +184,7 @@ function hastToEmbed(root: HastRoot): JSONContent | null {
 	return null;
 }
 
-const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|hubble-asset:)/i;
+const BLOCKED_IFRAME_SCHEME = /^(file:|data:|javascript:|sudomd-asset:)/i;
 const LOCAL_IFRAME_SRC = /^(\.{1,2}\/|[^:/\\]+(?:\/|$)).*\.html(?:[?#].*)?$/i;
 
 function getStringProperty(value: unknown): string {
@@ -241,6 +235,30 @@ function listItemToPM(li: ListItem, allowChecked: boolean): JSONContent[] {
 	];
 }
 
+function tableToPM(table: Table): JSONContent[] {
+	const align = table.align ?? [];
+	const rows = (table.children ?? []).map((row: TableRow, rowIndex) => {
+		const isHeader = rowIndex === 0;
+		const cells = (row.children ?? []).map((cell: TableCell, colIndex) => {
+			const inline = inlineToPM(cell.children ?? []);
+			const paragraph: JSONContent = { type: "paragraph" };
+			if (inline.length > 0) paragraph.content = inline;
+			return {
+				type: isHeader ? "tableHeader" : "tableCell",
+				attrs: {
+					colspan: 1,
+					rowspan: 1,
+					colwidth: null,
+					align: align[colIndex] ?? null,
+				},
+				content: [paragraph],
+			};
+		});
+		return { type: "tableRow", content: cells };
+	});
+	return rows.length > 0 ? [{ type: "table", content: rows }] : [];
+}
+
 function imageToPM(imageNode: Image): JSONContent[] {
 	if (!imageNode.url) return [];
 	return [
@@ -267,6 +285,11 @@ function htmlToEmbed(raw: string | undefined): JSONContent | null {
 function inlineToPM(children: Content[]): JSONContent[] {
 	const out: JSONContent[] = [];
 	for (const child of children ?? []) {
+		if ((child as { type: string }).type === "highlight") {
+			const node = child as unknown as { children?: Content[] };
+			out.push(...applyMark(inlineToPM(node.children ?? []), "highlight"));
+			continue;
+		}
 		switch (child.type) {
 			case "text":
 				if (child.value && child.value.length > 0) {
@@ -370,7 +393,7 @@ function textToPM(text: string): JSONContent[] {
 
 function applyMark(
 	nodes: JSONContent[],
-	markType: "bold" | "italic" | "strike" | "link",
+	markType: "bold" | "italic" | "strike" | "link" | "highlight",
 	attrs?: Record<string, unknown>,
 ): JSONContent[] {
 	return nodes.map((n) => {
@@ -386,7 +409,7 @@ function applyMark(
 	});
 }
 
-const EMPTY_PARKER = "HUBBLE_INTERNAL_EMPTY_MARKER";
+const EMPTY_PARKER = "SUDOMD_INTERNAL_EMPTY_MARKER";
 
 function rawMarkdownAddEmptyMarkers(rawMarkdown: string) {
 	return (

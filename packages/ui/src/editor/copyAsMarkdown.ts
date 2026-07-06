@@ -1,4 +1,4 @@
-import { selectionToMarkdown } from "@hubble.md/editor";
+import { selectionToMarkdown } from "@sudomd/editor";
 import type { Editor } from "@tiptap/core";
 
 type CopySelectionAsMarkdownOptions = {

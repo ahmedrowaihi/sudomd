@@ -1,8 +1,4 @@
-import {
-	type FindState,
-	getFindState,
-	selectFindMatch,
-} from "@hubble.md/editor";
+import { type FindState, getFindState, selectFindMatch } from "@sudomd/editor";
 import type { Editor } from "@tiptap/core";
 import { keymatch } from "keymatch";
 import {

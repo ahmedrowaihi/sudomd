@@ -1,11 +1,11 @@
 ---
 name: write-tech-spec
-description: Write a TECH.md spec for a significant Hubble feature after researching the monorepo architecture. Use when the user asks for a technical spec, implementation plan, architecture plan, or package/app/module breakdown tied to product behavior.
+description: Write a TECH.md spec for a significant Sudomd feature after researching the monorepo architecture. Use when the user asks for a technical spec, implementation plan, architecture plan, or package/app/module breakdown tied to product behavior.
 ---
 
 # write-tech-spec
 
-Write a `TECH.md` spec for a significant Hubble feature.
+Write a `TECH.md` spec for a significant Sudomd feature.
 
 ## Overview
 
@@ -15,7 +15,7 @@ Prefer a sibling `PRODUCT.md` first (`write-product-spec`). Reference its flows 
 
 Write specs to `specs/<id>/TECH.md`, matching the sibling product spec id. `specs/` should contain only id-named directories as direct children.
 
-Only create a GitHub issue when the user explicitly asks. This repo uses GitHub Issues on `bholmesdev/hubble.md` via `gh`; see `docs/agents/issue-tracker.md`.
+Only create a GitHub issue when the user explicitly asks. This repo uses GitHub Issues on `ahmedrowaihi/sudomd` via `gh`; see `docs/agents/issue-tracker.md`.
 
 ## When To Use
 

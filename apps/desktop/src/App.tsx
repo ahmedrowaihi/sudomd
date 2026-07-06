@@ -1,4 +1,5 @@
-import { wikiDisplayNameForTarget } from "@hubble.md/editor";
+import { useStoreValue } from "@simplestack/store/react";
+import { wikiDisplayNameForTarget } from "@sudomd/editor";
 import {
 	Button,
 	classifyHref,
@@ -6,15 +7,20 @@ import {
 	Input,
 	MarkdownSourceEditor,
 	type WikiTarget,
-} from "@hubble.md/ui";
-import { useStoreValue } from "@simplestack/store/react";
+} from "@sudomd/ui";
 import { keymatch } from "keymatch";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import MingcutePencilLine from "~icons/mingcute/pencil-line";
+import MingcuteSparklesLine from "~icons/mingcute/sparkles-line";
+import { BacklinksPanel } from "./components/BacklinksPanel";
+import { ChatPanel } from "./components/ChatPanel";
 import { HtmlAppEmptyState } from "./components/HtmlAppEmptyState";
+import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
+import { QuickSwitcher } from "./components/QuickSwitcher";
 import { SettingsDialog, SettingsSection } from "./components/SettingsDialog";
 import { Sidebar } from "./components/Sidebar";
+import { SudomdSettingsSections } from "./components/SudomdSettingsSections";
 import { TerminalPanel } from "./components/TerminalPanel";
 import { Toolbar } from "./components/Toolbar";
 import {
@@ -23,6 +29,7 @@ import {
 } from "./components/UpdatesSection";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { desktopApi } from "./desktopApi";
+import { useBasecampCopyListener } from "./features/useBasecampCopyListener";
 import type { DesktopUpdateState } from "./desktopApi/types";
 import { createEmbedExtension } from "./editor/EmbedExtension";
 import { handleImageDrop, handleImagePaste } from "./editor/handleImagePaste";
@@ -104,6 +111,9 @@ function App() {
 		useState<HTMLDivElement | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [copyAsMarkdownRequest, setCopyAsMarkdownRequest] = useState(0);
+	const [shortcutsOpen, setShortcutsOpen] = useState(false);
+	const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
+	const [chatOpen, setChatOpen] = useState(false);
 	const [updateState, setUpdateState] = useState<DesktopUpdateState | null>(
 		null,
 	);
@@ -206,9 +216,18 @@ function App() {
 		if (!sidebarOpen) setFocusedSidebarPath(null);
 	}, [sidebarOpen]);
 
+	useBasecampCopyListener();
+
 	useEffect(() => {
 		const onKeyDown = async (event: KeyboardEvent) => {
-			if (keymatch(event, "CmdOrCtrl+N")) {
+			if (keymatch(event, "CmdOrCtrl+P")) {
+				if (!workspaceStore.get().workspacePath) return;
+				event.preventDefault();
+				setQuickSwitcherOpen(true);
+			} else if (keymatch(event, "CmdOrCtrl+L")) {
+				event.preventDefault();
+				setChatOpen((value) => !value);
+			} else if (keymatch(event, "CmdOrCtrl+N")) {
 				event.preventDefault();
 				await createMarkdownFile();
 			} else if (keymatch(event, "CmdOrCtrl+,")) {
@@ -303,6 +322,7 @@ function App() {
 				}
 				setViewerMode(current.viewMode === "source" ? "rich" : "source");
 			}),
+			desktopApi.onMenuShowShortcuts(() => setShortcutsOpen(true)),
 		];
 		return () => {
 			for (const dispose of disposers) dispose();
@@ -421,8 +441,29 @@ function App() {
 					</div>
 					<TerminalPanel />
 				</section>
+				<ChatPanel
+					open={chatOpen}
+					onOpenChange={setChatOpen}
+					onOpenSettings={() => {
+						setChatOpen(false);
+						openSettings();
+						toast.info("Add your Claude credential to use the assistant");
+					}}
+				/>
 			</div>
+			{!chatOpen && (
+				<button
+					type="button"
+					aria-label="Open Claude (⌘L)"
+					title="Claude · ⌘L"
+					className="fixed end-4 bottom-4 z-30 grid size-10 place-content-center rounded-full bg-brand text-primary-foreground shadow-overlay hover:opacity-90"
+					onClick={() => setChatOpen(true)}
+				>
+					<MingcuteSparklesLine className="size-5" />
+				</button>
+			)}
 			<SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+				<SudomdSettingsSections />
 				<ChatAboutNoteSettingsSection />
 				{updateState ? (
 					<UpdatesSection
@@ -431,6 +472,14 @@ function App() {
 					/>
 				) : null}
 			</SettingsDialog>
+			<KeyboardShortcutsModal
+				open={shortcutsOpen}
+				onOpenChange={setShortcutsOpen}
+			/>
+			<QuickSwitcher
+				open={quickSwitcherOpen}
+				onOpenChange={setQuickSwitcherOpen}
+			/>
 		</main>
 	);
 }
@@ -441,7 +490,7 @@ function ChatAboutNoteSettingsSection() {
 	return (
 		<SettingsSection
 			title="Chat about this note"
-			description={`This command runs in a new terminal when you pick "Chat about this note" from a note's ⋯ menu. The shell replaces $HUBBLE_NOTE_PATH with the current note's file path.`}
+			description={`This command runs in a new terminal when you pick "Chat about this note" from a note's ⋯ menu. The shell replaces $SUDOMD_NOTE_PATH with the current note's file path.`}
 		>
 			<div className="relative">
 				<Input
@@ -633,37 +682,41 @@ function MarkdownEditor({
 		[path, workspace.workspacePath],
 	);
 	return (
-		<EditorView
-			path={path}
-			initialMarkdown={initialMarkdown}
-			wikiTargets={wikiTargets}
-			extensions={[
-				createImageExtension(path),
-				createEmbedExtension({
-					workspacePath: workspace.workspacePath,
-					filePath: path,
-				}),
-			]}
-			onPaste={(editor, event) => handleImagePaste({ editor, event })}
-			onDrop={(editor, event) => handleImageDrop({ editor, event })}
-			onLocalChange={updateEditorContent}
-			onSave={savePathContent}
-			onScrollContainerChange={onScrollContainerChange}
-			copyAsMarkdownRequest={copyAsMarkdownRequest}
-			onOpenExternalLink={openExternalLink}
-			onOpenWikiLink={(target) =>
-				void loadPath(
-					resolveWikiPath({
-						target,
-						files: workspace.files,
+		<div className="relative flex h-full min-h-0 flex-col">
+			<EditorView
+				path={path}
+				initialMarkdown={initialMarkdown}
+				wikiTargets={wikiTargets}
+				extensions={[
+					createImageExtension(path),
+					createEmbedExtension({
 						workspacePath: workspace.workspacePath,
+						filePath: path,
 					}),
-				)
-			}
-			onMessage={(message, kind) =>
-				kind === "success" ? toast.success(message) : toast.error(message)
-			}
-		/>
+				]}
+				onPaste={(editor, event) => handleImagePaste({ editor, event })}
+				onDrop={(editor, event) => handleImageDrop({ editor, event })}
+				onLocalChange={updateEditorContent}
+				onSave={savePathContent}
+				onScrollContainerChange={onScrollContainerChange}
+				copyAsMarkdownRequest={copyAsMarkdownRequest}
+				onOpenExternalLink={openExternalLink}
+				onOpenWikiLink={(target) =>
+					void loadPath(
+						resolveWikiPath({
+							target,
+							files: workspace.files,
+							workspacePath: workspace.workspacePath,
+							currentPath: path,
+						}),
+					)
+				}
+				onMessage={(message, kind) =>
+					kind === "success" ? toast.success(message) : toast.error(message)
+				}
+			/>
+			<BacklinksPanel currentPath={path} />
+		</div>
 	);
 }
 

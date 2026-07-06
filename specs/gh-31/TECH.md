@@ -24,7 +24,6 @@ Relevant code:
 
 - `apps/desktop`: implement the watcher removal, focus/menu refresh bridge, renderer subscriptions, docs, and tests.
 - `packages/ui`: no planned changes.
-- `packages/sync`, `packages/sync-backend`, `packages/convex-client`, `packages/cli`, `apps/www`: no planned changes.
 
 ## Architecture
 
@@ -73,7 +72,7 @@ Use a snapshot-plus-refresh model.
 
 Automated checks:
 
-- `pnpm --filter @hubble.md/desktop test`
+- `pnpm --filter @sudomd/desktop test`
 - `pnpm check`
 - `pnpm build:desktop`
 
@@ -84,9 +83,9 @@ Manual desktop validation:
 3. Confirm no `EMFILE` watcher spam appears.
 4. Confirm the app remains responsive while scrolling the sidebar.
 5. Confirm `File > Sync Workspace` is enabled with a workspace open.
-6. Create or delete a markdown file outside Hubble; choose `Sync Workspace`; confirm the sidebar updates.
-7. Create or delete a markdown file outside Hubble; blur and refocus Hubble; confirm the sidebar updates.
-8. Edit the active markdown file outside Hubble; confirm the active-file watcher still triggers existing external-change behavior.
+6. Create or delete a markdown file outside Sudomd; choose `Sync Workspace`; confirm the sidebar updates.
+7. Create or delete a markdown file outside Sudomd; blur and refocus Sudomd; confirm the sidebar updates.
+8. Edit the active markdown file outside Sudomd; confirm the active-file watcher still triggers existing external-change behavior.
 9. Open an ignored markdown file explicitly; confirm it is viewable and absent from the sidebar.
 
 ## Risks and mitigations

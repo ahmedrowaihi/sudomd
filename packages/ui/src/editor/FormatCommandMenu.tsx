@@ -1,3 +1,4 @@
+import { tiptapDocToMarkdown } from "@sudomd/editor";
 import type { Editor } from "@tiptap/core";
 import { Command } from "cmdk";
 import { keymatch } from "keymatch";
@@ -11,7 +12,9 @@ import {
 } from "react";
 import MingcuteBoldLine from "~icons/mingcute/bold-line";
 import MingcuteBorderHorizontalLine from "~icons/mingcute/border-horizontal-line";
+import MingcuteBrushLine from "~icons/mingcute/brush-line";
 import MingcuteCheckLine from "~icons/mingcute/check-line";
+import MingcuteClipboardLine from "~icons/mingcute/clipboard-line";
 import MingcuteHeading1Line from "~icons/mingcute/heading-1-line";
 import MingcuteHeading2Line from "~icons/mingcute/heading-2-line";
 import MingcuteHeading3Line from "~icons/mingcute/heading-3-line";
@@ -26,14 +29,25 @@ import MingcuteTextLine from "~icons/mingcute/text-line";
 import { formatShortcut } from "../lib/shortcut";
 import { cn } from "../lib/utils";
 import { useCommandMenuPosition } from "./commandMenuPosition";
-import {
-	applyFormatCommand,
-	type FormatCommandKind,
-	isFormatActive,
-} from "./formatCommands";
 
 /** Opens the `Cmd+/` format command menu from elsewhere (e.g. the selection toolbar's "More" button). */
-export const OPEN_FORMAT_COMMAND_MENU_EVENT = "hubble:open-format-command-menu";
+export const OPEN_FORMAT_COMMAND_MENU_EVENT = "sudomd:open-format-command-menu";
+type FormatCommandKind =
+	| "paragraph"
+	| "heading1"
+	| "heading2"
+	| "heading3"
+	| "bulletList"
+	| "orderedList"
+	| "taskList"
+	| "blockquote"
+	| "divider"
+	| "bold"
+	| "italic"
+	| "strike"
+	| "highlight"
+	| "link"
+	| "copyBasecamp";
 
 type FormatCommand = {
 	kind: FormatCommandKind;
@@ -156,6 +170,14 @@ const FORMAT_COMMANDS: FormatCommand[] = [
 		shortcut: "CmdOrCtrl+Shift+X",
 	},
 	{
+		kind: "highlight",
+		title: "Highlight",
+		description: "Toggle highlight",
+		aliases: ["mark", "==", "marker"],
+		icon: MingcuteBrushLine,
+		group: "Inline",
+	},
+	{
 		kind: "link",
 		title: "Link",
 		description: "Add or remove link",
@@ -164,7 +186,18 @@ const FORMAT_COMMANDS: FormatCommand[] = [
 		group: "Inline",
 		shortcut: "CmdOrCtrl+K",
 	},
+	{
+		kind: "copyBasecamp",
+		title: "Copy for Basecamp",
+		description: "Copy the selection as Basecamp rich text",
+		aliases: ["basecamp", "export", "clipboard"],
+		icon: MingcuteClipboardLine,
+		group: "Inline",
+	},
 ];
+
+/** Dispatched with `detail: { markdown }` when the user copies a selection for Basecamp. */
+export const COPY_FOR_BASECAMP_EVENT = "sudomd:copy-for-basecamp";
 
 export function FormatCommandMenu({
 	editor,
@@ -393,4 +426,105 @@ function isSubsequence(needle: string, haystack: string) {
 		if (index === needle.length) return true;
 	}
 	return false;
+}
+
+function isFormatActive(editor: Editor, kind: FormatCommandKind) {
+	const taskListActive =
+		editor.isActive("listItem", { checked: false }) ||
+		editor.isActive("listItem", { checked: true });
+
+	switch (kind) {
+		case "paragraph":
+			return (
+				editor.isActive("paragraph") &&
+				!editor.isActive("bulletList") &&
+				!editor.isActive("orderedList") &&
+				!editor.isActive("blockquote")
+			);
+		case "heading1":
+			return editor.isActive("heading", { level: 1 });
+		case "heading2":
+			return editor.isActive("heading", { level: 2 });
+		case "heading3":
+			return editor.isActive("heading", { level: 3 });
+		case "bulletList":
+			return editor.isActive("bulletList") && !taskListActive;
+		case "orderedList":
+			return editor.isActive("orderedList");
+		case "taskList":
+			return taskListActive;
+		case "blockquote":
+			return editor.isActive("blockquote");
+		case "bold":
+			return editor.isActive("bold");
+		case "italic":
+			return editor.isActive("italic");
+		case "strike":
+			return editor.isActive("strike");
+		case "link":
+			return editor.isActive("link");
+		case "divider":
+		case "copyBasecamp":
+			return false;
+	}
+}
+
+function applyFormatCommand(editor: Editor, kind: FormatCommandKind) {
+	const chain = editor.chain().focus(undefined, { scrollIntoView: false });
+
+	switch (kind) {
+		case "paragraph":
+			chain.setParagraph().run();
+			return;
+		case "heading1":
+			chain.setHeading({ level: 1 }).run();
+			return;
+		case "heading2":
+			chain.setHeading({ level: 2 }).run();
+			return;
+		case "heading3":
+			chain.setHeading({ level: 3 }).run();
+			return;
+		case "bulletList":
+			chain.toggleParentBulletList().run();
+			return;
+		case "orderedList":
+			chain.toggleParentOrderedList().run();
+			return;
+		case "taskList":
+			chain.toggleParentTaskList().run();
+			return;
+		case "blockquote":
+			chain.toggleBlockquote().run();
+			return;
+		case "divider":
+			chain.setHorizontalRule().run();
+			return;
+		case "bold":
+			chain.toggleBold().run();
+			return;
+		case "italic":
+			chain.toggleItalic().run();
+			return;
+		case "strike":
+			chain.toggleStrike().run();
+			return;
+		case "highlight":
+			chain.toggleHighlight().run();
+			return;
+		case "link":
+			editor.commands.focus(undefined, { scrollIntoView: false });
+			editor.commands.toggleLinkAtSelection();
+			return;
+		case "copyBasecamp": {
+			const slice = editor.state.selection.content();
+			const json = slice.content.toJSON();
+			const content = Array.isArray(json) ? json : json ? [json] : [];
+			const markdown = tiptapDocToMarkdown({ type: "doc", content });
+			window.dispatchEvent(
+				new CustomEvent(COPY_FOR_BASECAMP_EVENT, { detail: { markdown } }),
+			);
+			return;
+		}
+	}
 }

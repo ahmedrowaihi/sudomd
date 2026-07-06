@@ -74,6 +74,50 @@ export type WorkspaceConfig = {
 	pinnedNotes: string[];
 };
 
+export type AiPermissionMode = "default" | "plan" | "acceptEdits";
+export type AiPermissionDecision = "allow" | "allow-always" | "deny";
+
+export type AiChatEvent =
+	| { type: "text"; text: string }
+	| { type: "thinking"; text: string }
+	| { type: "tool"; id: string; name: string; input: unknown }
+	| {
+			type: "tool-result";
+			toolUseId: string;
+			content: string;
+			isError: boolean;
+	  }
+	| { type: "permission"; id: string; toolName: string; input: unknown }
+	| { type: "done"; sessionId: string | null; costUsd: number | null }
+	| { type: "error"; message: string };
+
+export type AiChatSendInput = {
+	prompt: string;
+	cwd: string;
+	credential: string;
+	mode: AiPermissionMode;
+	sessionId?: string | null;
+	forkSession?: boolean;
+};
+
+export type {
+	BasecampComment,
+	BasecampFetchResult,
+	BasecampSearchItem,
+	BasecampSearchResult,
+} from "./basecampTypes";
+
+import type {
+	BasecampFetchResult,
+	BasecampSearchResult,
+} from "./basecampTypes";
+
+export type AiChatHandle = {
+	done: Promise<void>;
+	cancel: () => void;
+	replyPermission: (id: string, decision: AiPermissionDecision) => void;
+};
+
 export type DesktopApi = {
 	platform: DesktopPlatform;
 	homeDir: string;
@@ -88,7 +132,7 @@ export type DesktopApi = {
 		config: WorkspaceConfig,
 	): Promise<void>;
 	readFileText(path: string): Promise<string>;
-	detectHubbleSkills(workspacePath: string): Promise<boolean>;
+	detectSudomdSkills(workspacePath: string): Promise<boolean>;
 	writeFileText(path: string, content: string): Promise<void>;
 	createFolder(path: string): Promise<void>;
 	renameFile(fromPath: string, toPath: string): Promise<void>;
@@ -134,6 +178,14 @@ export type DesktopApi = {
 	onMenuOpenSettings(callback: () => void): Unsubscribe;
 	onMenuCopyAsMarkdown(callback: () => void): Unsubscribe;
 	onMenuShowWorkspaceSwitcher(callback: () => void): Unsubscribe;
+	onMenuShowShortcuts(callback: () => void): Unsubscribe;
+	sendAiChat(
+		input: AiChatSendInput,
+		onEvent: (event: AiChatEvent) => void,
+	): AiChatHandle;
+	fetchBasecamp(url: string): Promise<BasecampFetchResult>;
+	searchBasecamp(query: string): Promise<BasecampSearchResult>;
+	setNativeTheme(source: "light" | "dark" | "system"): Promise<void>;
 	onMenuSyncWorkspace(callback: () => void): Unsubscribe;
 	onMenuToggleTerminal(callback: () => void): Unsubscribe;
 	onMenuToggleSourceMode(callback: () => void): Unsubscribe;

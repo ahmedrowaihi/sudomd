@@ -88,7 +88,7 @@ export async function setTrafficLightInset(
 	const inset = trafficLightInsetForZoom(zoomFactor);
 	try {
 		await window.webContents.executeJavaScript(
-			`document.documentElement.style.setProperty("--hubble-traffic-light-inset", "${inset}px")`,
+			`document.documentElement.style.setProperty("--sudomd-traffic-light-inset", "${inset}px")`,
 		);
 	} catch {
 		// The fallback inset still works if the renderer is navigating or destroyed.

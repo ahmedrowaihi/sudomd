@@ -55,7 +55,7 @@ function Modal({
 							}
 						/>
 					</div>
-					<div className="-mr-2 min-h-0 flex-1 overflow-y-auto pr-2">
+					<div className="-me-2 min-h-0 flex-1 overflow-y-auto pe-2">
 						{children}
 					</div>
 				</Dialog.Popup>

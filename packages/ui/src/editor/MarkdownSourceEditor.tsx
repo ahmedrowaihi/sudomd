@@ -3,7 +3,7 @@ import Document from "@tiptap/extension-document";
 import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useRef } from "react";
-import { HubbleCodeBlock } from "./CodeBlockExtension";
+import { SudomdCodeBlock } from "./CodeBlockExtension";
 import "./EditorView.css";
 
 const DEFAULT_SAVE_DEBOUNCE_MS = 120;
@@ -52,7 +52,7 @@ export function MarkdownSourceEditor({
 		extensions: [
 			SourceDocument,
 			StarterKit.configure({ codeBlock: false, document: false }),
-			HubbleCodeBlock.configure({ defaultLanguage: "md" }),
+			SudomdCodeBlock.configure({ defaultLanguage: "md" }),
 		],
 		content: sourceDocFromMarkdown(initialMarkdown),
 		onUpdate: ({ editor: current }) => {
@@ -96,8 +96,8 @@ export function MarkdownSourceEditor({
 	return (
 		<div
 			className="relative flex h-full min-h-0 flex-col"
-			data-hubble-editor
-			data-hubble-source-editor
+			data-sudomd-editor
+			data-sudomd-source-editor
 		>
 			<div
 				className="editorViewport relative min-h-0 flex-1 overflow-auto overscroll-contain"

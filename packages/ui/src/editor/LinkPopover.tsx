@@ -9,7 +9,7 @@ import {
 	getActiveLinkRange,
 	wikiDisplayNameForTarget,
 	withMarkdownExtension,
-} from "@hubble.md/editor";
+} from "@sudomd/editor";
 import type { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { keymatch } from "keymatch";
@@ -33,6 +33,7 @@ import { Button } from "../primitives/button";
 import { Input } from "../primitives/input";
 import { Separator } from "../primitives/separator";
 import { classifyHref, linkAttrsForHref } from "./href";
+import { isInternalLinkHref } from "./LinkClickExtension";
 import { linkCreationGhostKey } from "./LinkCreationGhostExtension";
 import styles from "./LinkPopover.module.css";
 import {
@@ -375,6 +376,10 @@ async function visitActiveLink(
 			return;
 		}
 		await onOpenWikiLink(withMarkdownExtension(link.target));
+		return;
+	}
+	if (isInternalLinkHref(link.href)) {
+		await onOpenWikiLink(link.href);
 		return;
 	}
 	await visitLink(link.href, onOpenExternalLink, onMessage);
@@ -1342,7 +1347,7 @@ export function LinkPopover({
 							variant="ghost"
 							size="sm"
 							title={previewTitle}
-							className="group/preview-label relative h-full min-w-0 flex-1 justify-start rounded-none border-0 py-[5px] ps-2 pe-0 text-left text-[11px] leading-[16px] text-foreground shadow-none inset-shadow-none transition-[padding] duration-[var(--default-transition-duration)] ease-snappy hover:bg-muted group-hover/preview-label:pe-8"
+							className="group/preview-label relative h-full min-w-0 flex-1 justify-start rounded-none border-0 py-[5px] ps-2 pe-0 text-start text-[11px] leading-[16px] text-foreground shadow-none inset-shadow-none transition-[padding] duration-[var(--default-transition-duration)] ease-snappy hover:bg-muted group-hover/preview-label:pe-8"
 							onClick={() => dispatchMachineEvent({ type: "EXPAND_REQUESTED" })}
 						>
 							<PreviewLabel key={previewText} text={previewText} />

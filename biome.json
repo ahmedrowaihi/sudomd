@@ -13,10 +13,9 @@
 			"!**/out",
 			"!**/build",
 			"!**/coverage",
-			"!**/.claude/skills",
+			"!**/.claude",
 			"!**/.astro",
-			"!**/*.tsbuildinfo",
-			"!**/convex/_generated"
+			"!**/*.tsbuildinfo"
 		]
 	},
 	"formatter": {

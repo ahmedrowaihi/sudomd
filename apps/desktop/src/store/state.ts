@@ -149,6 +149,7 @@ export const uiStore = appStore.select("ui");
 
 export const workspacePathStore = workspaceStore.select("workspacePath");
 export const recentWorkspacesStore = workspaceStore.select("recentWorkspaces");
+export const workspaceNamesStore = workspaceStore.select("workspaceNames");
 export const currentPathStore = viewerStore.select("currentPath");
 export const sidebarOpenStore = uiStore.select("sidebarOpen");
 export const switcherOpenStore = uiStore.select("isSwitcherOpen");

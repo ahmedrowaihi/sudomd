@@ -1,4 +1,4 @@
-import { getCaretFormattingState } from "@hubble.md/editor";
+import { getCaretFormattingState } from "@sudomd/editor";
 import type { Editor } from "@tiptap/core";
 import { useEffect, useState } from "react";
 import MingcuteBoldLine from "~icons/mingcute/bold-line";
@@ -8,7 +8,15 @@ import MingcuteStrikethroughLine from "~icons/mingcute/strikethrough-line";
 import { shouldShowFooterDivider } from "../lib/scrollOverflow";
 import { Button } from "../primitives/button";
 
-type CountMode = "words" | "chars";
+type CountMode = "words" | "chars" | "reading";
+
+const WORDS_PER_MINUTE = 200;
+
+const NEXT_COUNT_MODE: Record<CountMode, CountMode> = {
+	words: "chars",
+	chars: "reading",
+	reading: "words",
+};
 
 type CountState = {
 	wordCount: number;
@@ -106,10 +114,8 @@ export function FormattingStatusBar({
 				variant="ghost"
 				size="xs"
 				className="text-muted-foreground"
-				title={
-					countMode === "words" ? "Show character count" : "Show word count"
-				}
-				onClick={() => setCountMode((m) => (m === "words" ? "chars" : "words"))}
+				title="Toggle word count, characters, and reading time"
+				onClick={() => setCountMode((m) => NEXT_COUNT_MODE[m])}
 			>
 				{formatCountLabel(countMode, paletteState)}
 			</Button>
@@ -152,9 +158,15 @@ function getFormattingStatusCounts(editor: Editor): CountState {
 
 function formatCountLabel(mode: CountMode, counts: CountState) {
 	const suffix = counts.isSelectionCount ? " selected" : "";
-	return mode === "words"
-		? `${counts.wordCount} words${suffix}`
-		: `${counts.charCount} characters${suffix}`;
+	if (mode === "chars") return `${counts.charCount} characters${suffix}`;
+	if (mode === "reading") {
+		const minutes = Math.max(
+			1,
+			Math.round(counts.wordCount / WORDS_PER_MINUTE),
+		);
+		return `${minutes} min read${suffix}`;
+	}
+	return `${counts.wordCount} words${suffix}`;
 }
 
 function countWords(text: string) {

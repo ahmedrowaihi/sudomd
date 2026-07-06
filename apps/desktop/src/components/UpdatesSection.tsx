@@ -1,4 +1,4 @@
-import { Button } from "@hubble.md/ui";
+import { Button } from "@sudomd/ui";
 import type { DesktopUpdateState } from "../desktopApi/types";
 import { SettingsSection } from "./SettingsDialog";
 

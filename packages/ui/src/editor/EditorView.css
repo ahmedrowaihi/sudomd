@@ -1,11 +1,11 @@
-[data-hubble-editor] .editorViewport {
+[data-sudomd-editor] .editorViewport {
 	--editor-content-max-inline-size: 56rem;
 	--editor-content-padding-inline: clamp(1rem, 4vw, 3rem);
 
 	padding-block-end: clamp(4rem, 16vh, 8rem);
 }
 
-[data-hubble-editor] .editorPropertiesPanel {
+[data-sudomd-editor] .editorPropertiesPanel {
 	inline-size: 100%;
 	max-inline-size: var(--editor-content-max-inline-size);
 	margin-inline: auto;
@@ -13,7 +13,7 @@
 	padding-inline: var(--editor-content-padding-inline);
 }
 
-[data-hubble-editor] .ProseMirror {
+[data-sudomd-editor] .ProseMirror {
 	--editor-gap: 0.5em;
 	--editor-heading-gap: 0.35em;
 	--editor-section-gap: 0.9em;
@@ -34,23 +34,23 @@
 	font-size: var(--font-size-content);
 }
 
-[data-hubble-editor]
+[data-sudomd-editor]
 	.ProseMirror
 	:is(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, pre, table) {
 	margin-block: 0;
 }
 
 /* Default separation between any two blocks. */
-[data-hubble-editor] .ProseMirror > * + * {
+[data-sudomd-editor] .ProseMirror > * + * {
 	margin-block-start: var(--editor-gap);
 }
 
-[data-hubble-editor] .ProseMirror > .react-renderer.node-codeBlock {
+[data-sudomd-editor] .ProseMirror > .react-renderer.node-codeBlock {
 	margin-block: var(--editor-gap);
 }
 
-[data-hubble-editor] .ProseMirror > * + .react-renderer.node-codeBlock,
-[data-hubble-editor] .ProseMirror > .react-renderer.node-codeBlock + * {
+[data-sudomd-editor] .ProseMirror > * + .react-renderer.node-codeBlock,
+[data-sudomd-editor] .ProseMirror > .react-renderer.node-codeBlock + * {
 	margin-block-start: var(--editor-gap);
 }
 
@@ -60,70 +60,70 @@
  */
 
 /* A heading starts a new section: roomy above. */
-[data-hubble-editor] .ProseMirror > * + :is(h1, h2, h3, h4, h5, h6) {
+[data-sudomd-editor] .ProseMirror > * + :is(h1, h2, h3, h4, h5, h6) {
 	margin-block-start: var(--editor-section-gap);
 }
 
 /* A heading introduces what follows: tight below. */
-[data-hubble-editor] .ProseMirror > :is(h1, h2, h3, h4, h5, h6) + * {
+[data-sudomd-editor] .ProseMirror > :is(h1, h2, h3, h4, h5, h6) + * {
 	margin-block-start: var(--editor-heading-gap);
 }
 
 /* A list needs trailing breathing room before any following block. */
-[data-hubble-editor] .ProseMirror > :is(ul, ol) + * {
+[data-sudomd-editor] .ProseMirror > :is(ul, ol) + * {
 	margin-block-start: var(--editor-section-gap);
 }
 
-[data-hubble-editor] .ProseMirror h1 {
+[data-sudomd-editor] .ProseMirror h1 {
 	font-size: 1.75rem;
 	font-weight: 600;
 	line-height: 1.2;
 }
 
-[data-hubble-editor] .ProseMirror h2 {
+[data-sudomd-editor] .ProseMirror h2 {
 	font-size: 1.4rem;
 	font-weight: 600;
 	line-height: 1.25;
 }
 
-[data-hubble-editor] .ProseMirror h3 {
+[data-sudomd-editor] .ProseMirror h3 {
 	font-size: 1.15rem;
 	font-weight: 600;
 	line-height: 1.3;
 }
 
-[data-hubble-editor] .ProseMirror h4 {
+[data-sudomd-editor] .ProseMirror h4 {
 	font-size: 1.05rem;
 	font-weight: 600;
 	line-height: 1.35;
 	color: color-mix(in oklab, var(--foreground) 75%, var(--muted-foreground));
 }
 
-[data-hubble-editor] .ProseMirror ul {
+[data-sudomd-editor] .ProseMirror ul {
 	list-style-type: disc;
 }
 
-[data-hubble-editor] .ProseMirror ol {
+[data-sudomd-editor] .ProseMirror ol {
 	list-style-type: decimal;
 }
 
-[data-hubble-editor] .ProseMirror :is(ul, ol) li {
+[data-sudomd-editor] .ProseMirror :is(ul, ol) li {
 	margin-inline-start: 1.3rem;
 }
 
-[data-hubble-editor] .ProseMirror li + li,
-[data-hubble-editor] .ProseMirror li > div > :is(ul, ol) {
+[data-sudomd-editor] .ProseMirror li + li,
+[data-sudomd-editor] .ProseMirror li > div > :is(ul, ol) {
 	margin-block-start: var(--editor-list-gap);
 }
 
-[data-hubble-editor] .ProseMirror ul > li[data-checked] {
+[data-sudomd-editor] .ProseMirror ul > li[data-checked] {
 	list-style-type: none;
 	margin-inline-start: 0;
 	align-items: flex-start;
 	display: flex;
 }
 
-[data-hubble-editor] .ProseMirror ul > li[data-checked] > label {
+[data-sudomd-editor] .ProseMirror ul > li[data-checked] > label {
 	position: relative;
 	display: inline-flex;
 	align-items: center;
@@ -135,19 +135,19 @@
 	cursor: pointer;
 }
 
-[data-hubble-editor] .ProseMirror ul > li[data-checked] > div {
+[data-sudomd-editor] .ProseMirror ul > li[data-checked] > div {
 	flex: 1 1 auto;
 }
 
 /* The node view renders the checkbox label for every list item; only show it
  * for actual task items (those carry data-checked on the <li>). */
-[data-hubble-editor] .ProseMirror li:not([data-checked]) > .pm-task-checkbox {
+[data-sudomd-editor] .ProseMirror li:not([data-checked]) > .pm-task-checkbox {
 	display: none;
 }
 
 /* Custom forest-green task checkbox. The native input is kept for
  * interaction/accessibility but visually replaced by .pm-task-checkbox-box. */
-[data-hubble-editor] .pm-task-checkbox > input {
+[data-sudomd-editor] .pm-task-checkbox > input {
 	position: absolute;
 	inline-size: 1.1em;
 	block-size: 1.1em;
@@ -156,7 +156,7 @@
 	cursor: pointer;
 }
 
-[data-hubble-editor] .pm-task-checkbox-box {
+[data-sudomd-editor] .pm-task-checkbox-box {
 	/* mingcute check-line glyph */
 	--pm-task-check-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21.192 5.465a1 1 0 0 1 0 1.414L9.95 18.122a1.1 1.1 0 0 1-1.556 0l-5.586-5.586a1 1 0 1 1 1.415-1.415l4.95 4.95L19.777 5.465a1 1 0 0 1 1.414 0Z'/%3E%3C/svg%3E");
 	display: inline-grid;
@@ -172,7 +172,7 @@
 		transform 140ms var(--ease-snappy);
 }
 
-[data-hubble-editor] .pm-task-checkbox-box::after {
+[data-sudomd-editor] .pm-task-checkbox-box::after {
 	content: "";
 	inline-size: 0.9em;
 	block-size: 0.9em;
@@ -188,22 +188,22 @@
 }
 
 /* Hover: hint the forest green before commit. */
-[data-hubble-editor] .pm-task-checkbox:hover .pm-task-checkbox-box {
+[data-sudomd-editor] .pm-task-checkbox:hover .pm-task-checkbox-box {
 	border-color: color-mix(in oklab, var(--brand) 70%, var(--border));
 }
 
-[data-hubble-editor] .pm-task-checkbox > input:active + .pm-task-checkbox-box {
+[data-sudomd-editor] .pm-task-checkbox > input:active + .pm-task-checkbox-box {
 	transform: scale(0.88);
 }
 
 /* Checked: fill with forest green and pop in the checkmark. */
-[data-hubble-editor] .pm-task-checkbox > input:checked + .pm-task-checkbox-box {
+[data-sudomd-editor] .pm-task-checkbox > input:checked + .pm-task-checkbox-box {
 	background: var(--brand);
 	border-color: var(--brand);
-	animation: hubble-task-check-pop 180ms var(--ease-snappy);
+	animation: sudomd-task-check-pop 180ms var(--ease-snappy);
 }
 
-[data-hubble-editor]
+[data-sudomd-editor]
 	.pm-task-checkbox
 	> input:checked
 	+ .pm-task-checkbox-box::after {
@@ -213,7 +213,7 @@
 
 /* The native input is only visually hidden (opacity 0), so it stays in the tab
  * order; when keyboard focus lands on it, draw the ring on the visible box. */
-[data-hubble-editor]
+[data-sudomd-editor]
 	.pm-task-checkbox
 	> input:focus-visible
 	+ .pm-task-checkbox-box {
@@ -221,7 +221,7 @@
 	outline-offset: 2px;
 }
 
-@keyframes hubble-task-check-pop {
+@keyframes sudomd-task-check-pop {
 	0% {
 		transform: scale(0.85);
 	}
@@ -230,7 +230,7 @@
 	}
 }
 
-[data-hubble-editor] .ProseMirror blockquote {
+[data-sudomd-editor] .ProseMirror blockquote {
 	margin-inline-start: calc(1rem - 2px);
 	border-inline-start: 2px solid var(--border);
 	border-radius: 1px;
@@ -238,29 +238,29 @@
 	color: color-mix(in oklab, var(--foreground) 78%, white);
 }
 
-[data-hubble-editor] .pm-fake-selection {
+[data-sudomd-editor] .pm-fake-selection {
 	background: color-mix(in oklab, var(--selected) 70%, transparent);
 	border-radius: 2px;
 }
 
-[data-hubble-editor] .pm-find-match {
+[data-sudomd-editor] .pm-find-match {
 	background: color-mix(in oklab, var(--brand) 22%, transparent);
 	border-radius: 2px;
 }
 
-[data-hubble-editor] .pm-find-match-current {
+[data-sudomd-editor] .pm-find-match-current {
 	background: color-mix(in oklab, var(--brand) 38%, transparent);
 	box-shadow: 0 0 0 1px color-mix(in oklab, var(--brand) 45%, transparent);
 }
 
-[data-hubble-editor]
+[data-sudomd-editor]
 	:is(.pm-md-delimiter, .ProseMirror code, .ProseMirror pre) {
 	font-family:
 		"Lilex", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
 		"Liberation Mono", "Courier New", monospace;
 }
 
-[data-hubble-editor] .pm-md-delimiter {
+[data-sudomd-editor] .pm-md-delimiter {
 	color: var(--muted-foreground);
 	opacity: 0.7;
 	user-select: none;
@@ -269,14 +269,14 @@
 	cursor: text;
 }
 
-[data-hubble-editor] .ProseMirror code {
+[data-sudomd-editor] .ProseMirror code {
 	background: var(--muted);
 	padding: 0.1em 0.3em;
 	border-radius: 3px;
 	font-size: 0.9em;
 }
 
-[data-hubble-editor] .ProseMirror pre {
+[data-sudomd-editor] .ProseMirror pre {
 	background: var(--muted);
 	padding-block: 1.5rem;
 	padding-inline: 0.85rem;
@@ -285,11 +285,73 @@
 	overflow-x: auto;
 }
 
-[data-hubble-editor] .pm-code-block {
+[data-sudomd-editor] .pm-code-block {
 	position: relative;
 }
 
-[data-hubble-editor] .pm-code-block-controls {
+[data-sudomd-editor] .pm-mermaid-preview {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	padding: 1rem;
+	margin-block-start: 0.25rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md, 0.5rem);
+	background: var(--card);
+	overflow-x: auto;
+}
+
+[data-sudomd-editor] .pm-mermaid-controls {
+	position: absolute;
+	z-index: 1;
+	inset-block-start: 0.45rem;
+	inset-inline-end: 0.45rem;
+	display: flex;
+	align-items: center;
+	gap: 0.15rem;
+	opacity: 0;
+	transition: opacity 160ms var(--ease-snappy);
+}
+
+[data-sudomd-editor] .pm-mermaid-preview:hover .pm-mermaid-controls {
+	opacity: 1;
+}
+
+[data-sudomd-editor] .pm-mermaid-svg {
+	width: 100%;
+}
+
+/* Full-screen dialog: let the diagram grow to fit the large area rather than
+   stretching to the container width like the inline preview does. */
+.pm-mermaid-fullscreen-svg svg {
+	width: auto !important;
+	max-width: 100% !important;
+	height: auto;
+	max-height: 100%;
+}
+
+/* Mermaid stamps an inline max-width equal to the diagram's natural (often
+   tiny) size; override it so the diagram scales up to the block width. */
+[data-sudomd-editor] .pm-mermaid-svg svg {
+	width: 100% !important;
+	max-width: 100% !important;
+	height: auto;
+}
+
+[data-sudomd-editor] .pm-mermaid-empty {
+	color: var(--muted-foreground);
+	font-size: 0.8rem;
+}
+
+[data-sudomd-editor] .pm-mermaid-error {
+	margin: 0;
+	color: var(--destructive);
+	font-size: 0.8rem;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+[data-sudomd-editor] .pm-code-block-controls {
 	position: absolute;
 	z-index: 1;
 	inset-block-start: 0.45rem;
@@ -302,21 +364,21 @@
 	transition: opacity 160ms var(--ease-snappy);
 }
 
-[data-hubble-source-editor] .editorViewport {
+[data-sudomd-source-editor] .editorViewport {
 	display: flex;
 	flex-direction: column;
 	padding-block: 0;
 }
 
 /* Tiptap's EditorContent wrapper sits between the viewport and .ProseMirror. */
-[data-hubble-source-editor] .editorViewport > div {
+[data-sudomd-source-editor] .editorViewport > div {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
 	min-block-size: 0;
 }
 
-[data-hubble-source-editor] .ProseMirror {
+[data-sudomd-source-editor] .ProseMirror {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
@@ -327,181 +389,182 @@
 	caret-color: var(--brand-accent);
 }
 
-[data-hubble-source-editor] .ProseMirror > .react-renderer.node-codeBlock {
+[data-sudomd-source-editor] .ProseMirror > .react-renderer.node-codeBlock {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
 	margin-block: 0;
 }
 
-[data-hubble-source-editor] .pm-code-block {
+[data-sudomd-source-editor] .pm-code-block {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
 }
 
-[data-hubble-source-editor] .pm-code-block-controls {
+[data-sudomd-source-editor] .pm-code-block-controls {
 	display: none;
 }
 
-[data-hubble-source-editor] .ProseMirror pre {
+[data-sudomd-source-editor] .ProseMirror pre {
 	flex: 1;
 	background: transparent;
 	border-radius: 0;
 	padding: 0;
 }
 
-[data-hubble-editor]
+[data-sudomd-editor]
+	[data-sudomd-editor]
 	.react-renderer.node-codeBlock:hover
 	.pm-code-block-controls {
 	opacity: 1;
 	pointer-events: auto;
 }
 
-[data-hubble-editor] .pm-code-block-controls[data-select-open="true"] {
+[data-sudomd-editor] .pm-code-block-controls[data-select-open="true"] {
 	opacity: 0;
 	pointer-events: none;
 }
 
-[data-hubble-editor]
+[data-sudomd-editor]
 	.pm-code-block-controls:has(.pm-code-block-language[aria-expanded="true"]) {
 	opacity: 0;
 	pointer-events: none;
 }
 
-[data-hubble-editor]
+[data-sudomd-editor]
 	.react-renderer.node-codeBlock:hover
 	.pm-code-block-controls:has(.pm-code-block-language[aria-expanded="true"]) {
 	opacity: 0;
 	pointer-events: none;
 }
 
-[data-hubble-editor] .pm-code-block-language {
+[data-sudomd-editor] .pm-code-block-language {
 	max-inline-size: 9rem;
 	border: 0;
 	padding-inline: 0.5rem;
 }
 
-[data-hubble-editor] .pm-code-block-language [data-slot="value"] {
+[data-sudomd-editor] .pm-code-block-language [data-slot="value"] {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-[data-hubble-editor] .ProseMirror pre code {
+[data-sudomd-editor] .ProseMirror pre code {
 	background: transparent;
 	color: #000;
 	padding: 0;
 }
 
-[data-hubble-editor] .ProseMirror .xml .hljs-meta {
+[data-sudomd-editor] .ProseMirror .xml .hljs-meta {
 	color: #c0c0c0;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-comment,
-[data-hubble-editor] .ProseMirror .hljs-quote {
+[data-sudomd-editor] .ProseMirror .hljs-comment,
+[data-sudomd-editor] .ProseMirror .hljs-quote {
 	color: #007400;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-tag,
-[data-hubble-editor] .ProseMirror .hljs-attribute,
-[data-hubble-editor] .ProseMirror .hljs-keyword,
-[data-hubble-editor] .ProseMirror .hljs-selector-tag,
-[data-hubble-editor] .ProseMirror .hljs-literal,
-[data-hubble-editor] .ProseMirror .hljs-name {
+[data-sudomd-editor] .ProseMirror .hljs-tag,
+[data-sudomd-editor] .ProseMirror .hljs-attribute,
+[data-sudomd-editor] .ProseMirror .hljs-keyword,
+[data-sudomd-editor] .ProseMirror .hljs-selector-tag,
+[data-sudomd-editor] .ProseMirror .hljs-literal,
+[data-sudomd-editor] .ProseMirror .hljs-name {
 	color: #aa0d91;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-variable,
-[data-hubble-editor] .ProseMirror .hljs-template-variable {
+[data-sudomd-editor] .ProseMirror .hljs-variable,
+[data-sudomd-editor] .ProseMirror .hljs-template-variable {
 	color: #3f6e74;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-code,
-[data-hubble-editor] .ProseMirror .hljs-string,
-[data-hubble-editor] .ProseMirror .hljs-meta .hljs-string {
+[data-sudomd-editor] .ProseMirror .hljs-code,
+[data-sudomd-editor] .ProseMirror .hljs-string,
+[data-sudomd-editor] .ProseMirror .hljs-meta .hljs-string {
 	color: #c41a16;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-regexp,
-[data-hubble-editor] .ProseMirror .hljs-link {
+[data-sudomd-editor] .ProseMirror .hljs-regexp,
+[data-sudomd-editor] .ProseMirror .hljs-link {
 	color: #0e0eff;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-title,
-[data-hubble-editor] .ProseMirror .hljs-symbol,
-[data-hubble-editor] .ProseMirror .hljs-bullet,
-[data-hubble-editor] .ProseMirror .hljs-number {
+[data-sudomd-editor] .ProseMirror .hljs-title,
+[data-sudomd-editor] .ProseMirror .hljs-symbol,
+[data-sudomd-editor] .ProseMirror .hljs-bullet,
+[data-sudomd-editor] .ProseMirror .hljs-number {
 	color: #1c00cf;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-section,
-[data-hubble-editor] .ProseMirror .hljs-meta {
+[data-sudomd-editor] .ProseMirror .hljs-section,
+[data-sudomd-editor] .ProseMirror .hljs-meta {
 	color: #643820;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-title.class_,
-[data-hubble-editor] .ProseMirror .hljs-class .hljs-title,
-[data-hubble-editor] .ProseMirror .hljs-type,
-[data-hubble-editor] .ProseMirror .hljs-built_in,
-[data-hubble-editor] .ProseMirror .hljs-params {
+[data-sudomd-editor] .ProseMirror .hljs-title.class_,
+[data-sudomd-editor] .ProseMirror .hljs-class .hljs-title,
+[data-sudomd-editor] .ProseMirror .hljs-type,
+[data-sudomd-editor] .ProseMirror .hljs-built_in,
+[data-sudomd-editor] .ProseMirror .hljs-params {
 	color: #5c2699;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-attr {
+[data-sudomd-editor] .ProseMirror .hljs-attr {
 	color: #836c28;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-subst {
+[data-sudomd-editor] .ProseMirror .hljs-subst {
 	color: #000;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-selector-id,
-[data-hubble-editor] .ProseMirror .hljs-selector-class {
+[data-sudomd-editor] .ProseMirror .hljs-selector-id,
+[data-sudomd-editor] .ProseMirror .hljs-selector-class {
 	color: #9b703f;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-doctag,
-[data-hubble-editor] .ProseMirror .hljs-strong {
+[data-sudomd-editor] .ProseMirror .hljs-doctag,
+[data-sudomd-editor] .ProseMirror .hljs-strong {
 	font-weight: 700;
 }
 
-[data-hubble-editor] .ProseMirror .hljs-emphasis {
+[data-sudomd-editor] .ProseMirror .hljs-emphasis {
 	font-style: italic;
 }
 
-[data-hubble-editor] .ProseMirror span[data-link="true"] {
+[data-sudomd-editor] .ProseMirror span[data-link="true"] {
 	color: color-mix(in oklab, var(--brand) 48%, var(--foreground));
 	text-decoration: underline;
 }
 
-[data-hubble-editor] .ProseMirror.mod-held span[data-link="true"] {
+[data-sudomd-editor] .ProseMirror.mod-held span[data-link="true"] {
 	cursor: pointer;
 }
 
-[data-hubble-editor] .pm-ghost-text {
+[data-sudomd-editor] .pm-ghost-text {
 	opacity: 0.35;
 	user-select: none;
 	pointer-events: none;
 }
 
-[data-hubble-editor] .ProseMirror img {
+[data-sudomd-editor] .ProseMirror img {
 	display: block;
 	max-inline-size: min(100%, 900px);
 	block-size: auto;
 }
 
-[data-hubble-editor] .pm-image-frame {
+[data-sudomd-editor] .pm-image-frame {
 	display: block;
 	max-inline-size: min(100%, 900px);
 }
 
-[data-hubble-editor] .pm-image-frame-measured > img {
+[data-sudomd-editor] .pm-image-frame-measured > img {
 	inline-size: 100%;
 	block-size: 100%;
 	object-fit: contain;
 }
 
-[data-hubble-editor] .pm-image-missing {
+[data-sudomd-editor] .pm-image-missing {
 	display: flex;
 	block-size: 100%;
 	min-block-size: 96px;
@@ -515,7 +578,7 @@
 	font-size: 0.8125rem;
 }
 
-[data-hubble-editor] .pm-image-upload-placeholder {
+[data-sudomd-editor] .pm-image-upload-placeholder {
 	position: relative;
 	display: flex;
 	inline-size: 100%;
@@ -528,10 +591,10 @@
 	background: var(--muted);
 	color: var(--muted-foreground);
 	font-size: 0.8125rem;
-	animation: hubble-image-upload-fade-in 220ms ease-out both;
+	animation: sudomd-image-upload-fade-in 220ms ease-out both;
 }
 
-[data-hubble-editor] .pm-image-upload-placeholder-shimmer {
+[data-sudomd-editor] .pm-image-upload-placeholder-shimmer {
 	position: absolute;
 	inset-block: 0;
 	inset-inline-start: -40%;
@@ -542,17 +605,17 @@
 		color-mix(in oklab, var(--background) 72%, transparent),
 		transparent
 	);
-	animation: hubble-image-upload-shimmer 1.3s ease-in-out infinite;
+	animation: sudomd-image-upload-shimmer 1.3s ease-in-out infinite;
 }
 
-[data-hubble-editor] .pm-image-upload-spinner {
+[data-sudomd-editor] .pm-image-upload-spinner {
 	position: relative;
 	inline-size: 1.5rem;
 	block-size: 1.5rem;
-	animation: hubble-image-upload-spin 900ms linear infinite;
+	animation: sudomd-image-upload-spin 900ms linear infinite;
 }
 
-@keyframes hubble-image-upload-fade-in {
+@keyframes sudomd-image-upload-fade-in {
 	from {
 		opacity: 0;
 		transform: translateY(2px);
@@ -563,64 +626,78 @@
 	}
 }
 
-@keyframes hubble-image-upload-spin {
+@keyframes sudomd-image-upload-spin {
 	to {
 		transform: rotate(1turn);
 	}
 }
 
-@keyframes hubble-image-upload-shimmer {
+@keyframes sudomd-image-upload-shimmer {
 	to {
 		inset-inline-start: 100%;
 	}
 }
 
-[data-hubble-editor] .ProseMirror table {
-	border-collapse: separate;
-	border-spacing: 0;
-	border-radius: var(--radius);
+[data-sudomd-editor] .tableWrapper {
+	overflow-x: auto;
+	margin-block: 0.75rem;
+}
+
+[data-sudomd-editor] table {
+	border-collapse: collapse;
 	table-layout: fixed;
-	inline-size: 100%;
-	margin-block: var(--editor-gap);
+	width: 100%;
+	margin: 0;
 	overflow: hidden;
 }
 
-[data-hubble-editor] .ProseMirror td,
-[data-hubble-editor] .ProseMirror th {
-	min-inline-size: 1em;
+[data-sudomd-editor] table td,
+[data-sudomd-editor] table th {
+	position: relative;
+	min-width: 4rem;
 	border: 1px solid var(--border);
-	padding: 0.5rem 0.75rem;
+	padding: 0.375rem 0.5rem;
 	vertical-align: top;
 	box-sizing: border-box;
-	position: relative;
 }
 
-[data-hubble-editor] .ProseMirror tr:not(:first-child) :is(td, th) {
-	border-block-start: 0;
-}
-
-[data-hubble-editor] .ProseMirror :is(td, th):not(:first-child) {
-	border-inline-start: 0;
-}
-
-[data-hubble-editor] .ProseMirror tr:first-child :is(td, th):first-child {
-	border-start-start-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror tr:first-child :is(td, th):last-child {
-	border-start-end-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror tr:last-child :is(td, th):first-child {
-	border-end-start-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror tr:last-child :is(td, th):last-child {
-	border-end-end-radius: var(--radius);
-}
-
-[data-hubble-editor] .ProseMirror th {
-	background-color: var(--muted);
+[data-sudomd-editor] table th {
+	background: var(--muted);
 	font-weight: 600;
 	text-align: start;
+}
+
+[data-sudomd-editor] table td > *,
+[data-sudomd-editor] table th > * {
+	margin: 0;
+}
+
+[data-sudomd-editor] table .selectedCell::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: color-mix(in oklab, var(--primary) 18%, transparent);
+	pointer-events: none;
+}
+
+[data-sudomd-editor] table .column-resize-handle {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-end: -2px;
+	width: 4px;
+	background: var(--primary);
+	cursor: col-resize;
+}
+
+[data-sudomd-editor] .resize-cursor {
+	cursor: col-resize;
+}
+
+[data-sudomd-editor] .ProseMirror mark {
+	background: color-mix(in oklab, var(--brand) 28%, transparent);
+	color: inherit;
+	border-radius: 2px;
+	padding: 0 0.1em;
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
 }

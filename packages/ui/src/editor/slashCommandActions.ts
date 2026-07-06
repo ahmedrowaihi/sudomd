@@ -13,7 +13,8 @@ export type SlashCommandKind =
 	| "blockquote"
 	| "divider"
 	| "strike"
-	| "table";
+	| "table"
+	| "link";
 
 export type SlashToken = {
 	from: number;
@@ -69,18 +70,20 @@ export function applySlashCommand(
 		view.focus();
 		return;
 	}
-
 	if (kind === "table") {
-		const range = { from: token.from, to: token.to };
+		view.dispatch(state.tr.delete(token.from, token.to));
 		editor
 			.chain()
 			.focus()
-			.deleteRange(range)
 			.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
 			.run();
 		return;
 	}
-
+	if (kind === "link") {
+		view.dispatch(state.tr.delete(token.from, token.to));
+		editor.commands.toggleLinkAtSelection();
+		return;
+	}
 	const canConvertInPlace =
 		block?.type.name === "paragraph" &&
 		block.content.size === token.to - token.from;
@@ -188,6 +191,7 @@ function createEmptyBlock(
 			return horizontalRule.create();
 		case "strike":
 		case "table":
+		case "link":
 			return null;
 	}
 }

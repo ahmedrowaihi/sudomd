@@ -10,13 +10,11 @@ import {
 	parseMarkdownFrontMatter,
 	StrikethroughShortcutExtension,
 	tiptapDocToMarkdown,
-} from "@hubble.md/editor";
+} from "@sudomd/editor";
 import type { Editor } from "@tiptap/core";
+import { Highlight } from "@tiptap/extension-highlight";
 import { TaskItem } from "@tiptap/extension-list";
-import { Table } from "@tiptap/extension-table";
-import { TableCell } from "@tiptap/extension-table-cell";
-import { TableHeader } from "@tiptap/extension-table-header";
-import { TableRow } from "@tiptap/extension-table-row";
+import { Typography } from "@tiptap/extension-typography";
 import {
 	EditorContent,
 	type EditorOptions,
@@ -25,14 +23,15 @@ import {
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CODE_BLOCK_COPY_EVENT, HubbleCodeBlock } from "./CodeBlockExtension";
+import { CODE_BLOCK_COPY_EVENT, SudomdCodeBlock } from "./CodeBlockExtension";
 import { copySelectionAsMarkdown } from "./copyAsMarkdown";
 import { LinkClickExtension } from "./LinkClickExtension";
 import { LinkCreationGhostExtension } from "./LinkCreationGhostExtension";
 import { LinkPopover, type WikiTarget } from "./LinkPopover";
+import { OutlinePanel } from "./OutlinePanel";
 import { SlashCommandMenu } from "./SlashCommandMenu";
 import { SmartLinkExtension } from "./SmartLinkExtension";
-import { TableCellSelectionExtension } from "./TableCellSelectionExtension";
+import { sudomdEditorExtensions } from "./sudomdExtensions";
 import { VirtualCursor } from "./VirtualCursor";
 import "./EditorView.css";
 import {
@@ -47,10 +46,9 @@ import type { VirtualCursorMode } from "./virtualCursorMode";
 
 const DEFAULT_SAVE_DEBOUNCE_MS = 120;
 
-// Markdown table cells should not hold block content, so cells allow exactly one
-// paragraph (line breaks serialize as <br>)
-const InlineTableCell = TableCell.extend({ content: "paragraph" });
-const InlineTableHeader = TableHeader.extend({ content: "paragraph" });
+/** Dispatch a `CustomEvent` with this name (`detail: { markdown }`) to insert
+ * markdown at the editor's cursor. */
+export const INSERT_MARKDOWN_EVENT = "sudomd:insert-markdown";
 
 export type { WikiTarget };
 
@@ -148,7 +146,7 @@ export function EditorView({
 	const editor = useEditor({
 		extensions: [
 			StarterKit.configure({ codeBlock: false, listItem: false }),
-			HubbleCodeBlock,
+			SudomdCodeBlock,
 			LinkExtension,
 			SmartLinkExtension,
 			LinkClickExtension.configure({ onOpenExternalLink, onOpenWikiLink }),
@@ -158,14 +156,12 @@ export function EditorView({
 			HeadingExtension,
 			MarkdownRolloverExtension,
 			StrikethroughShortcutExtension,
+			Highlight,
+			Typography,
 			...listExtensions,
+			...sudomdEditorExtensions,
 			...extensions,
 			TaskItem.configure({ nested: true }),
-			Table.configure({ resizable: true }),
-			TableRow,
-			InlineTableHeader,
-			InlineTableCell,
-			TableCellSelectionExtension,
 		],
 		content: initialDoc,
 		onUpdate: ({ editor: current }) => {
@@ -186,6 +182,7 @@ export function EditorView({
 			attributes: {
 				...editorProps?.attributes,
 				"data-editor-input": "",
+				dir: "auto",
 			},
 			handlePaste: (view, event, slice): boolean => {
 				if (editorProps?.handlePaste?.(view, event, slice)) return true;
@@ -269,11 +266,29 @@ export function EditorView({
 		});
 	}, [copyAsMarkdownRequest, editor, onMessage]);
 
+	useEffect(() => {
+		if (!editor) return;
+		const handleInsert = (event: Event) => {
+			const markdown = (event as CustomEvent<{ markdown?: string }>).detail
+				?.markdown;
+			if (typeof markdown !== "string" || !markdown) return;
+			const doc = markdownToTiptapDoc(markdown);
+			editor
+				.chain()
+				.focus()
+				.insertContent(doc.content ?? [])
+				.run();
+		};
+		window.addEventListener(INSERT_MARKDOWN_EVENT, handleInsert);
+		return () =>
+			window.removeEventListener(INSERT_MARKDOWN_EVENT, handleInsert);
+	}, [editor]);
+
 	return (
 		<div
 			className="relative flex h-full min-h-0 flex-col"
 			ref={editorRootRef}
-			data-hubble-editor
+			data-sudomd-editor
 		>
 			<div
 				className="editorViewport relative min-h-0 flex-1 overflow-auto overscroll-contain"
@@ -318,6 +333,7 @@ export function EditorView({
 				/>
 				<FormatCommandMenu editor={editor} viewportRef={editorViewportRef} />
 			</div>
+			<OutlinePanel editor={editor} />
 			<FindBar editor={editor} />
 			<FormattingStatusBar editor={editor} scrollContainer={editorViewportEl} />
 		</div>

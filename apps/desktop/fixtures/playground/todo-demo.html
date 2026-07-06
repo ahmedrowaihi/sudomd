@@ -25,9 +25,9 @@
 				async refresh() {
 					this.error = ''
 					try {
-						const files = await hubble.files.list('todos/*.md')
+						const files = await sudomd.files.list('todos/*.md')
 						const todos = await Promise.all(files.map(async (file) => {
-							const note = await hubble.files.read(file.path)
+							const note = await sudomd.files.read(file.path)
 							return {
 								path: file.path,
 								title: note.properties.title || note.body.replace(/^#\\s*/, '').trim() || file.name,
@@ -54,7 +54,7 @@
 					this.error = ''
 					try {
 						const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-						await hubble.files.create({
+						await sudomd.files.create({
 							path: `todos/${this.slug(title)}-${stamp}.md`,
 							body: `# ${title}\\n\\n`,
 							properties: {
@@ -72,7 +72,7 @@
 				async toggle(todo) {
 					this.error = ''
 					try {
-						await hubble.files.update(todo.path, {
+						await sudomd.files.update(todo.path, {
 							properties: { done: !todo.done }
 						})
 						await this.refresh()
@@ -83,7 +83,7 @@
 				async setPriority(todo, priority) {
 					this.error = ''
 					try {
-						await hubble.files.update(todo.path, {
+						await sudomd.files.update(todo.path, {
 							properties: { priority }
 						})
 						await this.refresh()
@@ -94,7 +94,7 @@
 				async open(todo) {
 					this.error = ''
 					try {
-						await hubble.files.open(todo.path)
+						await sudomd.files.open(todo.path)
 					} catch (error) {
 						this.error = error.message
 					}
@@ -102,7 +102,7 @@
 				async remove(todo) {
 					this.error = ''
 					try {
-						await hubble.files.remove(todo.path)
+						await sudomd.files.remove(todo.path)
 						await this.refresh()
 					} catch (error) {
 						this.error = error.message

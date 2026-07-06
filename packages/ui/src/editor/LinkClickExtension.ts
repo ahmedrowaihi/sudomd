@@ -1,4 +1,4 @@
-import type { LinkKind } from "@hubble.md/editor";
+import type { LinkKind } from "@sudomd/editor";
 import { Extension } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
@@ -28,6 +28,16 @@ function findLinkAtEvent(
 		}
 	}
 	return null;
+}
+
+/**
+ * A relative-path link to another workspace file (e.g. `today/README.md`,
+ * `../plan.md`), as opposed to an external URL (`https:`, `mailto:`) or a
+ * same-document anchor (`#section`). These navigate inside the workspace.
+ */
+export function isInternalLinkHref(href: string): boolean {
+	if (!href || href.startsWith("#")) return false;
+	return !/^[a-z][a-z0-9+.-]*:/i.test(href) && !href.startsWith("//");
 }
 
 const MOD_CLASS = "mod-held";
@@ -61,7 +71,7 @@ export const LinkClickExtension = Extension.create<{
 							const link = findLinkAtEvent(view, event);
 							if (!link) return false;
 							event.preventDefault();
-							if (link.kind === "wiki") {
+							if (link.kind === "wiki" || isInternalLinkHref(link.href)) {
 								void this.options.onOpenWikiLink?.(link.target ?? link.href);
 								return true;
 							}

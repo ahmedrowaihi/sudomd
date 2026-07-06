@@ -2,10 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "open-props/easings";
-@import "@hubble.md/ui/tailwind.css";
-@import "@hubble.md/ui/style.css";
-@import "@hubble.md/ui/theme.css";
-@import "@hubble.md/ui/fonts.css";
+@import "@sudomd/ui/tailwind.css";
+@import "@sudomd/ui/style.css";
+@import "@sudomd/ui/theme.css";
+@import "@sudomd/ui/fonts.css";
 
 @custom-variant dark (&:is(.dark *));
 

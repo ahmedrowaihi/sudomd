@@ -1,7 +1,7 @@
 import type { Editor } from "@tiptap/core";
 
 /**
- * The set of formatting actions Hubble exposes on top of its editor commands.
+ * The set of formatting actions Sudomd exposes on top of its editor commands.
  * Shared by the `Cmd+/` format command menu and the selection toolbar so both
  * apply formatting and report active state identically.
  */

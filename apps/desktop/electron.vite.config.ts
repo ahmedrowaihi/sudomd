@@ -10,7 +10,7 @@ export default defineConfig({
 	main: {
 		plugins: [
 			externalizeDepsPlugin({
-				exclude: ["@hubble.md/runtime", "@tailwindcss/browser", "alpinejs"],
+				exclude: ["@sudomd/runtime", "@tailwindcss/browser", "alpinejs"],
 			}),
 		],
 		build: {
