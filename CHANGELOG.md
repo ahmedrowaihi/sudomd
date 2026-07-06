@@ -24,6 +24,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 - Desktop saves no longer drop trailing content in notes with multibyte characters
 - Relative Markdown file links now open the linked file instead of showing an invalid URL error
 
+- Bold, italic, and strikethrough selections with boundary spaces now save as valid Markdown (`**bold** next`, not `**bold **next`). Thanks [@luchopcerra](https://github.com/luchopcerra)! ([#128](https://github.com/bholmesdev/hubble.md/pull/128))
+
 ## [0.1.16] - 2026-06-27
 
 ### Added
