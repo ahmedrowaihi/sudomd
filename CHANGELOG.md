@@ -9,6 +9,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
 ### Added
 
+- Linux desktop builds now ship an RPM package alongside the existing AppImage and deb, for install on Fedora/RHEL/openSUSE and other RPM-based distros. [#151](https://github.com/bholmesdev/hubble.md/pull/151)
+
 ### Changed
 
 ### Fixed
