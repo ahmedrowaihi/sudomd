@@ -134,6 +134,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install rpmbuild
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
       - name: Verify tag matches desktop version
         run: |
           VERSION="$(node -p "require('./apps/desktop/package.json').version")"

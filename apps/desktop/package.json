@@ -121,13 +121,18 @@
 			"category": "Office",
 			"target": [
 				"AppImage",
-				"deb"
+				"deb",
+				"rpm"
 			]
 		},
 		"appImage": {
 			"artifactName": "hubble_${version}_${arch}.${ext}"
 		},
 		"deb": {
+			"packageName": "hubble.md",
+			"artifactName": "hubble_${version}_${arch}.${ext}"
+		},
+		"rpm": {
 			"packageName": "hubble.md",
 			"artifactName": "hubble_${version}_${arch}.${ext}"
 		},
