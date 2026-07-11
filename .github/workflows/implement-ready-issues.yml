@@ -1,6 +1,6 @@
 name: Implement Ready Issues
 
-# Runs an Oz cloud agent when an issue receives the ready-to-implement label.
+# Runs an Oz cloud agent when an issue is ready to implement.
 # The agent follows .agents/skills/implementation/SKILL.md to implement the issue,
 # verify it end-to-end, open a pull request, and report progress back to the
 # original issue.
@@ -8,20 +8,31 @@ name: Implement Ready Issues
 on:
   issues:
     types: [labeled]
+  # May be triggered by `triage` workflow directly
+  workflow_call:
+    inputs:
+      issue_number:
+        description: Issue number to implement
+        required: true
+        type: string
 
 concurrency:
-  group: implement-issue-${{ github.event.issue.number }}
+  group: implement-issue-${{ inputs.issue_number || github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
   implement:
     name: Implement issue
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'ready-to-implement'
+    # inputs is only populated on workflow_call; the github context is inherited
+    # from the caller there, so event_name/label cannot distinguish the two paths.
+    if: inputs.issue_number != '' || github.event.label.name == 'ready-to-implement'
     permissions:
       contents: write        # let the agent commit and push an implementation branch
       issues: write          # let the agent post progress and final PR link comments
       pull-requests: write   # let the agent open the implementation PR
+    env:
+      ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,16 +45,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         with:
           model: gpt-5-5-low
-          name: "Implement issue #${{ github.event.issue.number }}"
+          name: "Implement issue #${{ env.ISSUE_NUMBER }}"
           prompt: |
             Use the Implementation skill in this repository to implement the GitHub issue that was just labeled ready to implement.
 
             First read `.agents/skills/implementation/SKILL.md`, then follow it exactly, including its verification step: exercise the changed behavior end-to-end with the repo's verification skills (for desktop changes, `.agents/skills/test-desktop-app/SKILL.md`) rather than relying on typechecks alone.
 
             - Repository: ${{ github.repository }}
-            - Issue number: #${{ github.event.issue.number }}
-            - Issue URL: ${{ github.event.issue.html_url }}
-            - Applied label: ${{ github.event.label.name }}
+            - Issue number: #${{ env.ISSUE_NUMBER }}
+            - Issue URL: https://github.com/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }}
 
             Fetch the full issue and comments with the authenticated `gh` CLI,
             inspect this checked-out codebase, implement the smallest cohesive
@@ -54,7 +64,7 @@ jobs:
             workflow URL as the follow-along link. Do not post a final success
             comment until the pull request has been opened. The final issue
             comment must include the PR URL, and the PR body must link to this
-            issue using `Closes #${{ github.event.issue.number }}` when the
+            issue using `Closes #${{ env.ISSUE_NUMBER }}` when the
             implementation fully resolves it.
           warp_api_key: ${{ secrets.WARP_API_KEY }}
           profile: ${{ vars.WARP_AGENT_PROFILE || '' }}
