@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	applySidebarSelection,
 	type SidebarSelectionState,
+	sidebarDeleteSelection,
 	sidebarMoveCandidateFromRow,
 	sidebarMoveItemsForDrag,
 	sidebarRowKey,
@@ -220,5 +221,32 @@ describe("sidebar selection helpers", () => {
 		});
 
 		expect(items).toEqual([{ kind: "file", path: "/workspace/project/b.md" }]);
+	});
+});
+
+describe("sidebarDeleteSelection", () => {
+	const selection = {
+		files: [{ path: "/workspace/project/b.md" }, { path: "/workspace/c.md" }],
+		folders: ["project/", "project/archive/"],
+		count: 4,
+	};
+
+	it("drops descendants covered by an actionable folder", () => {
+		expect(
+			sidebarDeleteSelection(selection, getDisplayPath, true, true),
+		).toEqual({
+			files: [{ path: "/workspace/c.md" }],
+			folders: ["project/"],
+			count: 2,
+		});
+	});
+
+	it("counts only types with delete handlers", () => {
+		expect(
+			sidebarDeleteSelection(selection, getDisplayPath, true, false),
+		).toEqual({ files: selection.files, folders: [], count: 2 });
+		expect(
+			sidebarDeleteSelection(selection, getDisplayPath, false, true),
+		).toEqual({ files: [], folders: ["project/"], count: 1 });
 	});
 });
