@@ -50,7 +50,7 @@ Search reads the same file list the sidebar shows. Per ADR-0008, that list is an
 9. Name and path matching is fuzzy: the typed characters must appear in order but need not be adjacent, and separators such as spaces, hyphens, and underscores are ignored. Content matching is literal and case-insensitive.
 10. Results are grouped, with name and path matches shown before content matches. A Markdown File that matches both ways appears once, under name matches.
 11. Each name result shows the file name and its folder path relative to the open folder, with the matched characters emphasized.
-12. Each content result shows the file name, the line number of the first match, and a one-line excerpt with the matched text emphasized in context. When a file matches on several lines, at most three excerpts are shown for that file.
+12. Each content result shows the file name and a readable one-line excerpt with inline Markdown syntax stripped and the matched text emphasized in context. The line number is returned in the payload but not rendered until jump-to-line is implemented. When a file matches on several lines, at most three excerpts are shown for that file.
 13. Content search covers Markdown Files only. Name and path search also covers HTML Apps, since they are openable documents in the sidebar.
 14. While content search is running, the palette shows a quiet in-progress indication. Changing the query abandons the in-flight search rather than queueing another.
 
@@ -69,7 +69,7 @@ Search reads the same file list the sidebar shows. Per ADR-0008, that list is an
 1. Open a folder containing at least a few dozen Markdown Files across nested folders.
 2. Press `CmdOrCtrl+P`. Confirm the palette opens focused and empty, listing recently modified files.
 3. Type a partial, misspelled-by-omission file name (e.g. `mtgnts` for `meeting-notes.md`). Confirm the file appears, with matched characters emphasized.
-4. Type a phrase you know appears inside exactly one note and nowhere in any file name. Confirm a content result appears with the right line number and a readable excerpt.
+4. Type a phrase you know appears inside exactly one note and nowhere in any file name. Confirm a content result appears with a readable excerpt and inline Markdown syntax stripped.
 5. Press `Enter` on that content result. Confirm the palette closes and the correct Markdown File opens.
 6. Type a query matching many files. Confirm results appear promptly and, if capped, that the palette says results were capped.
 7. Type quickly and continuously. Confirm no stale result set ever replaces a newer one, and the palette never flickers back to older matches.

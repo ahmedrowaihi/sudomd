@@ -61,6 +61,52 @@ describe("findMatchesInContent", () => {
 		expect(highlighted(match.excerpt, ...offsets(match))).toBe("needle");
 	});
 
+	it("strips bold and italic markers while keeping highlight offsets", () => {
+		const [match] = findMatchesInContent(
+			"Before **bold** and _italic_ after",
+			"italic",
+		);
+		expect(match.excerpt).toBe("Before bold and italic after");
+		expect(highlighted(match.excerpt, ...offsets(match))).toBe("italic");
+	});
+
+	it("strips inline code backticks", () => {
+		const [match] = findMatchesInContent("Run `pnpm test` now", "pnpm");
+		expect(match.excerpt).toBe("Run pnpm test now");
+		expect(highlighted(match.excerpt, ...offsets(match))).toBe("pnpm");
+	});
+
+	it("replaces link syntax with link text", () => {
+		const [match] = findMatchesInContent(
+			"Read the [search guide](https://example.com/search)",
+			"search guide",
+		);
+		expect(match.excerpt).toBe("Read the search guide");
+		expect(highlighted(match.excerpt, ...offsets(match))).toBe("search guide");
+	});
+
+	it("keeps intra-word underscores, so snake_case stays searchable", () => {
+		const [match] = findMatchesInContent(
+			"rename snake_case_name in _this_ file",
+			"snake_case_name",
+		);
+		expect(match.excerpt).toBe("rename snake_case_name in this file");
+		expect(highlighted(match.excerpt, ...offsets(match))).toBe(
+			"snake_case_name",
+		);
+	});
+
+	it("keeps a lone asterisk that never closes", () => {
+		const [match] = findMatchesInContent("compute 2 * 3 first", "2 * 3");
+		expect(match.excerpt).toBe("compute 2 * 3 first");
+	});
+
+	it("matches text that was enclosed by markdown markers", () => {
+		const [match] = findMatchesInContent("**bold text**", "bold text");
+		expect(match.excerpt).toBe("bold text");
+		expect(highlighted(match.excerpt, ...offsets(match))).toBe("bold text");
+	});
+
 	it("tolerates CRLF line endings", () => {
 		const [match] = findMatchesInContent("one\r\nneedle here\r\n", "needle");
 		expect(match.line).toBe(2);

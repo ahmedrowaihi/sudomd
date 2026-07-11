@@ -49,7 +49,7 @@ Add to `DesktopApi` (`apps/desktop/src/desktopApi/types.ts`), preload (`electron
 ```ts
 export type SearchContentMatch = {
 	line: number;        // 1-indexed
-	excerpt: string;     // trimmed line, window around the first match
+	excerpt: string;     // stripped inline Markdown, window around the first match
 	matchStart: number;  // offset into excerpt
 	matchEnd: number;
 };
@@ -79,7 +79,7 @@ Main-process implementation:
 - `stat` each candidate; skip when `size > MAX_FILE_BYTES`.
 - Read with a concurrency pool of `SEARCH_CONCURRENCY`.
 - Match case-insensitively on a literal needle. No regex: it avoids ReDoS on user input and avoids the question of which dialect we promise.
-- Per file, collect up to `MAX_MATCHES_PER_FILE` matches, each with line number and an excerpt windowed to `EXCERPT_CONTEXT_CHARS` either side of the match.
+- Per file, collect up to `MAX_MATCHES_PER_FILE` matches, each with a payload line number and an excerpt with inline Markdown syntax stripped, windowed to `EXCERPT_CONTEXT_CHARS` either side of the match. The palette does not render the line number until jump-to-line is implemented.
 - Stop after `MAX_RESULT_FILES` files have matched, and set `truncated: true`.
 
 Constants, in one place in main: `MAX_FILE_BYTES = 2 * 1024 * 1024`, `MAX_RESULT_FILES = 50`, `MAX_MATCHES_PER_FILE = 3`, `SEARCH_CONCURRENCY = 8`, `EXCERPT_CONTEXT_CHARS = 40`.
@@ -144,7 +144,7 @@ Desktop (running app; use the `test-desktop-app` skill when automating):
 
 1. Open a folder with nested Markdown Files. `CmdOrCtrl+P` opens the palette, focused and empty, showing recently modified files. `Escape` closes it and restores focus.
 2. Type a subsequence of a file name with characters omitted; confirm the file ranks and matched characters are emphasized. Confirm a basename match outranks a parent-folder-only match.
-3. Type a phrase present in exactly one note's body and in no file name; confirm one content result with the correct line number and a readable excerpt. `Enter` opens that file.
+3. Type a phrase present in exactly one note's body and in no file name; confirm one content result with a readable excerpt and inline Markdown syntax stripped. `Enter` opens that file.
 4. Type continuously and fast; confirm no older result set ever replaces a newer one, and name results never blank out while content search runs.
 5. Create a folder with more than 50 files containing a common phrase; confirm the capped-results message appears.
 6. Add a note to `.gitignore`, run `File > Sync Workspace`, and confirm the note disappears from both sidebar and search.

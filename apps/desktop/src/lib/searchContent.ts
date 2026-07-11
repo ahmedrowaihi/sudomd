@@ -7,6 +7,22 @@ export const SEARCH_MAX_MATCHES_PER_FILE = 3;
 export const SEARCH_CONCURRENCY = 8;
 export const SEARCH_EXCERPT_CONTEXT_CHARS = 40;
 
+function stripInlineMarkdown(line: string) {
+	return (
+		line
+			.replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+			.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+			.replace(/`+([^`]*)`+/g, "$1")
+			// Markers strip only when they could open and close emphasis: no space
+			// just inside the pair, and for underscores no word character just
+			// outside, so snake_case and stray asterisks in prose stay searchable.
+			.replace(/\*\*(?!\s)([^*]+?)(?<!\s)\*\*/g, "$1")
+			.replace(/\*(?!\s)([^*]+?)(?<!\s)\*/g, "$1")
+			.replace(/(?<!\w)__(?!\s)([^_]+?)(?<!\s)__(?!\w)/g, "$1")
+			.replace(/(?<!\w)_(?!\s)([^_]+?)(?<!\s)_(?!\w)/g, "$1")
+	);
+}
+
 /**
  * Literal, case-insensitive line matching with a windowed excerpt.
  *
@@ -26,7 +42,7 @@ export function findMatchesInContent(
 	const lines = content.split("\n");
 	for (let index = 0; index < lines.length; index += 1) {
 		if (matches.length >= maxMatches) break;
-		const line = lines[index].replace(/\r$/, "");
+		const line = stripInlineMarkdown(lines[index].replace(/\r$/, ""));
 		const at = line.toLowerCase().indexOf(needle);
 		if (at === -1) continue;
 

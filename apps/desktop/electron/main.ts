@@ -1351,7 +1351,13 @@ function registerIpc() {
 				results: results
 					.slice(0, SEARCH_MAX_RESULT_FILES)
 					.sort((a, b) => a.path.localeCompare(b.path)),
-				truncated: capped && cursor < candidates.length,
+				// Workers can push a few past the cap between awaits; the slice hides
+				// them, so they must count as truncation. `capped` alone is not
+				// enough of a signal in the other direction: a scan that finished
+				// with exactly the cap dropped nothing.
+				truncated:
+					(capped && cursor < candidates.length) ||
+					results.length > SEARCH_MAX_RESULT_FILES,
 			};
 		},
 	);

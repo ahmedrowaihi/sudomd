@@ -174,11 +174,6 @@ function GlobalSearchPalette({
 
 	const isEmptyQuery = query.trim() === "";
 	const hasResults = nameResults.length > 0 || contentResults.length > 0;
-	// Content search only starts at 3 characters. Say so while the user is below
-	// that, instead of letting the palette look like it found nothing.
-	const belowContentThreshold =
-		!isEmptyQuery && query.trim().length < MIN_CONTENT_QUERY_LENGTH;
-
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
 			<Dialog.Portal>
@@ -201,7 +196,7 @@ function GlobalSearchPalette({
 				>
 					<Dialog.Title className="sr-only">Search files</Dialog.Title>
 					<Dialog.Description className="sr-only">
-						Find a Markdown File by name, path, or content.
+						Find a note by name, path, or content.
 					</Dialog.Description>
 					<Command
 						label="Search files"
@@ -215,7 +210,7 @@ function GlobalSearchPalette({
 								ref={inputRef}
 								value={query}
 								onValueChange={setQuery}
-								placeholder="Search files by name or content"
+								placeholder="Search notes by name or content"
 								className="h-12 w-full border-0 bg-transparent text-[13px] text-foreground outline-hidden placeholder:text-muted-foreground"
 							/>
 							{searching && (
@@ -228,12 +223,12 @@ function GlobalSearchPalette({
 						<Command.List className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
 							{!hasResults && !searching && (
 								<div className="px-3 py-8 text-center text-xs text-muted-foreground">
-									{isEmptyQuery ? "No files yet" : "No matches"}
+									{isEmptyQuery ? "No notes yet" : "No matches"}
 								</div>
 							)}
 
 							{nameResults.length > 0 && (
-								<ResultGroup heading={isEmptyQuery ? "Recent" : "Files"}>
+								<ResultGroup heading={isEmptyQuery ? "Recent" : "Notes"}>
 									{nameResults.map((file) => (
 										<Command.Item
 											key={file.path}
@@ -267,17 +262,12 @@ function GlobalSearchPalette({
 													{entry.matches.map((match) => (
 														<span
 															key={`${entry.path}:${match.line}`}
-															className="flex gap-2.5 font-mono text-[11px] leading-[16px] text-muted-foreground"
+															className="block truncate text-[11px] leading-[16px] text-muted-foreground"
 														>
-															<span className="w-6 shrink-0 text-end tabular-nums opacity-50">
-																{match.line}
-															</span>
-															<span className="min-w-0 truncate">
-																<Highlight
-																	text={match.excerpt}
-																	ranges={[[match.matchStart, match.matchEnd]]}
-																/>
-															</span>
+															<Highlight
+																text={match.excerpt}
+																ranges={[[match.matchStart, match.matchEnd]]}
+															/>
 														</span>
 													))}
 												</div>
@@ -289,19 +279,13 @@ function GlobalSearchPalette({
 
 							{result?.truncated && (
 								<p className="m-0 px-3 py-2 text-[11px] text-muted-foreground">
-									Showing the first {contentResults.length} files with content
-									matches. Narrow your search to see more.
+									Some content matches aren't shown. Narrow your search.
 								</p>
 							)}
 						</Command.List>
 
-						<div className="flex shrink-0 items-center justify-between gap-3 border-t border-border px-3.5 py-2 text-[11px] text-muted-foreground">
-							<span>
-								{belowContentThreshold
-									? `Type ${MIN_CONTENT_QUERY_LENGTH} characters to search file content`
-									: "Search covers file names, paths, and content"}
-							</span>
-							<span className="flex shrink-0 items-center gap-3">
+						<div className="flex shrink-0 items-center gap-3 border-t border-border px-3.5 py-2 text-[11px] text-muted-foreground">
+							<span className="flex items-center gap-3">
 								<Legend keys="↑↓">Navigate</Legend>
 								<Legend
 									icon={<MingcuteCornerDownLeftLine className="size-3" />}
