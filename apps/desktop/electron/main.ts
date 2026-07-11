@@ -888,6 +888,16 @@ function buildMenu() {
 					: []),
 			],
 		},
+		{
+			label: "Help",
+			submenu: [
+				{
+					id: "whats-new",
+					label: "See what's new",
+					click: () => sendToRenderer("desktop:menu-open-changelog"),
+				},
+			],
+		},
 	];
 
 	if (process.platform === "darwin") {
