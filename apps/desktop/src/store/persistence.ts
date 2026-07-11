@@ -25,6 +25,7 @@ type UiState = {
 
 type SettingsState = {
 	chatCommand: string;
+	lastSeenVersion: string | null;
 };
 
 export type DesktopState = {
@@ -47,7 +48,7 @@ type Persisted = {
 		isTerminalOpen?: boolean;
 		terminalPosition?: TerminalPosition;
 	};
-	settings?: { chatCommand?: string };
+	settings?: { chatCommand?: string; lastSeenVersion?: string | null };
 };
 
 export const STORAGE_KEY = "hubble-desktop-app";
@@ -101,6 +102,15 @@ export function getInitialState(): DesktopState {
 				typeof p?.settings?.chatCommand === "string"
 					? p.settings.chatCommand
 					: DEFAULT_CHAT_COMMAND,
+			// A missing field on an existing install means the user updated from
+			// a release that predates version tracking: treat the running version
+			// as news. Only a truly fresh install starts at null (no callout).
+			lastSeenVersion:
+				typeof p?.settings?.lastSeenVersion === "string"
+					? p.settings.lastSeenVersion
+					: p
+						? ""
+						: null,
 		},
 	};
 }
@@ -123,6 +133,7 @@ export function serialize(state: DesktopState): Persisted {
 		},
 		settings: {
 			chatCommand: state.settings.chatCommand,
+			lastSeenVersion: state.settings.lastSeenVersion,
 		},
 	};
 }
