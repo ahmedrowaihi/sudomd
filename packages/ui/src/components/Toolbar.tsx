@@ -127,7 +127,7 @@ export function Toolbar({
 	return (
 		<div
 			{...rootProps}
-			className={`flex h-9 items-center ${borderClass} ${rootProps?.className ?? ""}`}
+			className={`flex h-9 select-none items-center ${borderClass} ${rootProps?.className ?? ""}`}
 		>
 			<ToolbarCluster
 				width={
@@ -164,7 +164,7 @@ export function Toolbar({
 				{editingTitle ? (
 					<input
 						ref={titleInputRef}
-						className="h-6 min-w-0 max-w-full rounded-sm bg-transparent px-1 text-center text-xs text-foreground outline-none focus-visible:outline-none focus-visible:ring-0"
+						className="h-6 min-w-0 max-w-full select-text rounded-sm bg-transparent px-1 text-center text-xs text-foreground outline-none focus-visible:outline-none focus-visible:ring-0"
 						style={NO_DRAG_STYLE}
 						value={draftTitle}
 						onBlur={() => void commitTitleEdit()}
