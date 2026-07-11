@@ -1,4 +1,5 @@
 import {
+	ContextMenuSpellcheckExtension,
 	combineMarkdownFrontMatter,
 	FakeSelectionExtension,
 	FindExtension,
@@ -156,6 +157,7 @@ export function EditorView({
 			SmartLinkExtension,
 			LinkClickExtension.configure({ onOpenExternalLink, onOpenWikiLink }),
 			LinkCreationGhostExtension,
+			ContextMenuSpellcheckExtension,
 			FakeSelectionExtension,
 			FindExtension,
 			HeadingExtension,
