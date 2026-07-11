@@ -717,8 +717,28 @@ function buildTextContextMenu(
 	webContents: Electron.WebContents,
 	params: Electron.ContextMenuParams,
 ) {
+	const spellingItems: Electron.MenuItemConstructorOptions[] =
+		params.misspelledWord.length > 0
+			? [
+					...(params.dictionarySuggestions.length > 0
+						? params.dictionarySuggestions.map((suggestion) => ({
+								label: suggestion,
+								click: () => webContents.replaceMisspelling(suggestion),
+							}))
+						: [{ label: "No Guesses Found", enabled: false }]),
+					{
+						label: "Add to Dictionary",
+						click: () =>
+							webContents.session.addWordToSpellCheckerDictionary(
+								params.misspelledWord,
+							),
+					},
+					{ type: "separator" },
+				]
+			: [];
+
 	// In source mode the text is already markdown, so plain copy covers it.
-	const template: Electron.MenuItemConstructorOptions[] = textContextMenuItems
+	const editItems: Electron.MenuItemConstructorOptions[] = textContextMenuItems
 		.filter(
 			(item) =>
 				!(
@@ -742,13 +762,17 @@ function buildTextContextMenu(
 					},
 		);
 
-	return Menu.buildFromTemplate(template);
+	return Menu.buildFromTemplate([...spellingItems, ...editItems]);
 }
 
 function registerTextContextMenu(window: BrowserWindow) {
 	window.webContents.on("context-menu", (_event, params) => {
 		if (!params.isEditable) return;
-		buildTextContextMenu(window.webContents, params).popup({ window });
+		buildTextContextMenu(window.webContents, params).popup({
+			window,
+			// macOS needs the originating frame to attach Writing Tools and text services.
+			frame: params.frame ?? undefined,
+		});
 	});
 }
 
