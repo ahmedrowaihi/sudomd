@@ -999,7 +999,7 @@ export function Sidebar({
 										"group/sidebar-row relative flex w-full items-center text-sidebar-foreground",
 										!isActive &&
 											isSelected &&
-											"bg-selected/60 text-selected-foreground",
+											"bg-selected text-selected-foreground",
 										!isActive && !isSelected && isFocused && "bg-accent",
 										isActive &&
 											"bg-sidebar-accent text-sidebar-accent-foreground font-medium",
@@ -1139,7 +1139,7 @@ export function Sidebar({
 												isActive
 													? "bg-linear-to-r from-transparent from-0% via-sidebar-accent via-25% to-sidebar-accent"
 													: isSelected
-														? "bg-linear-to-r from-transparent from-0% via-selected/60 via-25% to-selected/60"
+														? "bg-linear-to-r from-transparent from-0% via-selected via-25% to-selected"
 														: "bg-linear-to-r from-transparent from-0% via-accent via-25% to-accent",
 											)}
 										/>
