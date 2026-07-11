@@ -17,6 +17,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
 ### Fixed
 
+- macOS text context menus now include Writing Tools, text services, and spelling suggestions. Thanks [@noahpatterson](https://github.com/noahpatterson) for the suggestion! [#164](https://github.com/bholmesdev/hubble.md/pull/164)
 - Update-check failures now show a concise, unobtrusive message instead of a raw error trace.
 
 ## [0.1.19] - 2026-07-11

@@ -1,4 +1,5 @@
 import {
+	ContextMenuSpellcheckExtension,
 	combineMarkdownFrontMatter,
 	FakeSelectionExtension,
 	FindExtension,
@@ -163,6 +164,7 @@ export function EditorView({
 				requireModifier: editable,
 			}),
 			LinkCreationGhostExtension,
+			ContextMenuSpellcheckExtension,
 			FakeSelectionExtension,
 			FindExtension,
 			HeadingExtension,
