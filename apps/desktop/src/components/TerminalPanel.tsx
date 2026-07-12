@@ -3,7 +3,14 @@ import { useResizeSeparator } from "@hubble.md/ui";
 import { useStoreValue } from "@simplestack/store/react";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
-import { type ReactNode, useEffect, useReducer, useRef, useState } from "react";
+import {
+	type ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useReducer,
+	useRef,
+	useState,
+} from "react";
 import { desktopApi } from "../desktopApi";
 import { cn } from "../lib/utils";
 import {
@@ -572,9 +579,10 @@ function TerminalInstance({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const termRef = useRef<Terminal | null>(null);
 	const fitAddonRef = useRef<FitAddon | null>(null);
-	// Read via ref so callback changes never remount xterm.
+	// Sync before paint so xterm never sees a stale callback after a render;
+	// keeping it in a ref avoids remounting the terminal when the callback changes.
 	const onExitRef = useRef(onExit);
-	useEffect(() => {
+	useLayoutEffect(() => {
 		onExitRef.current = onExit;
 	}, [onExit]);
 

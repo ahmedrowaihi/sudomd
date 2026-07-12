@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import icons from "unplugin-icons/vite";
+import { reactCompilerPlugin } from "../../config/react-compiler-audit";
 
 const devPort = Number(process.env.PORT ?? 1420);
 
@@ -32,7 +33,7 @@ export default defineConfig({
 		plugins: [
 			react({
 				babel: {
-					plugins: ["babel-plugin-react-compiler"],
+					plugins: [reactCompilerPlugin("desktop")],
 				},
 			}),
 			icons({

@@ -2,12 +2,13 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import icons from "unplugin-icons/vite";
 import { defineConfig } from "vite";
+import { reactCompilerPlugin } from "../../config/react-compiler-audit";
 
 export default defineConfig({
 	plugins: [
 		react({
 			babel: {
-				plugins: ["babel-plugin-react-compiler"],
+				plugins: [reactCompilerPlugin("www")],
 			},
 		}),
 		icons({

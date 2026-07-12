@@ -100,9 +100,6 @@ export function useSidebarTree({
 	}, [storageKey, expandedState]);
 
 	const tree = buildFileTree(files, folders, getDisplayPath);
-	const activeAncestorIds = highlightPath
-		? getFolderAncestorIds(getDisplayPath(highlightPath))
-		: new Set<string>();
 	const rows = flattenRows({
 		files,
 		getDisplayPath,
@@ -115,6 +112,9 @@ export function useSidebarTree({
 	useEffect(() => {
 		if (!highlightPath || revealedPathRef.current === highlightPath) return;
 		revealedPathRef.current = highlightPath;
+		const activeAncestorIds = getFolderAncestorIds(
+			getDisplayPath(highlightPath),
+		);
 		if (activeAncestorIds.size === 0) return;
 		// Auto-expand ancestors once per selected file so manual collapse still works.
 		setExpandedState((current) => {
@@ -131,7 +131,7 @@ export function useSidebarTree({
 			}
 			return changed ? { key: storageKey, folders: next } : current;
 		});
-	}, [activeAncestorIds, highlightPath, storageKey]);
+	}, [getDisplayPath, highlightPath, storageKey]);
 
 	const setExpanded = (id: string, expanded: boolean) => {
 		setExpandedState((current) => {

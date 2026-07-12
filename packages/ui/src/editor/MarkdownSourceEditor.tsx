@@ -4,6 +4,11 @@ import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { HubbleCodeBlock } from "./CodeBlockExtension";
+import {
+	flushPendingSave,
+	type PendingSave,
+	schedulePendingSave,
+} from "./pendingSave";
 import "./EditorView.css";
 
 const DEFAULT_SAVE_DEBOUNCE_MS = 120;
@@ -28,7 +33,7 @@ export function MarkdownSourceEditor({
 }: MarkdownSourceEditorProps) {
 	const pathRef = useRef(path);
 	const latestMarkdownRef = useRef(initialMarkdown);
-	const saveTimerRef = useRef<number | null>(null);
+	const pendingSaveRef = useRef<PendingSave | null>(null);
 	useLayoutEffect(() => {
 		pathRef.current = path;
 	}, [path]);
@@ -38,14 +43,13 @@ export function MarkdownSourceEditor({
 	};
 
 	const scheduleSave = () => {
-		const savePath = pathRef.current;
-		if (saveTimerRef.current !== null) {
-			window.clearTimeout(saveTimerRef.current);
-		}
-		saveTimerRef.current = window.setTimeout(() => {
-			saveTimerRef.current = null;
-			void onSave(savePath, latestMarkdownRef.current);
-		}, saveDebounceMs);
+		schedulePendingSave({
+			delay: saveDebounceMs,
+			markdown: latestMarkdownRef.current,
+			path: pathRef.current,
+			ref: pendingSaveRef,
+			save: onSave,
+		});
 	};
 
 	const editor = useEditor({
@@ -84,14 +88,12 @@ export function MarkdownSourceEditor({
 	}, [editor, initialMarkdown]);
 
 	useEffect(() => {
+		// Path changes flush the pending edit before the next document takes over.
+		void path;
 		return () => {
-			if (saveTimerRef.current !== null) {
-				window.clearTimeout(saveTimerRef.current);
-				saveTimerRef.current = null;
-				void onSave(path, latestMarkdownRef.current);
-			}
+			flushPendingSave(pendingSaveRef);
 		};
-	}, [path, onSave]);
+	}, [path]);
 
 	return (
 		<div

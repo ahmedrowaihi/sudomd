@@ -198,6 +198,8 @@ export function SelectionFormattingToolbar({
 						width: right - left,
 						height: bottom - top,
 						toJSON() {
+							// Floating UI expects a plain DOMRect snapshot; returning `this`
+							// leaks the mutable reference and violates compiler purity.
 							return {
 								x: left,
 								y: top,

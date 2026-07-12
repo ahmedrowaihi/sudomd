@@ -32,6 +32,11 @@ import { copySelectionAsMarkdown } from "./copyAsMarkdown";
 import { LinkClickExtension } from "./LinkClickExtension";
 import { LinkCreationGhostExtension } from "./LinkCreationGhostExtension";
 import { LinkPopover, type WikiTarget } from "./LinkPopover";
+import {
+	flushPendingSave,
+	type PendingSave,
+	schedulePendingSave,
+} from "./pendingSave";
 import { SlashCommandMenu } from "./SlashCommandMenu";
 import { SmartLinkExtension } from "./SmartLinkExtension";
 import { TableCellSelectionExtension } from "./TableCellSelectionExtension";
@@ -103,7 +108,7 @@ export function EditorView({
 	const latestMarkdownRef = useRef(
 		combineMarkdownFrontMatter(initialFrontMatterRaw, initialFrontMatter.body),
 	);
-	const saveTimerRef = useRef<number | null>(null);
+	const pendingSaveRef = useRef<PendingSave | null>(null);
 	const editorRootRef = useRef<HTMLDivElement | null>(null);
 	const editorViewportRef = useRef<HTMLDivElement | null>(null);
 	const lastCopyAsMarkdownRequestRef = useRef(copyAsMarkdownRequest);
@@ -132,14 +137,13 @@ export function EditorView({
 	);
 
 	const scheduleSave = () => {
-		const savePath = pathRef.current;
-		if (saveTimerRef.current !== null) {
-			window.clearTimeout(saveTimerRef.current);
-		}
-		saveTimerRef.current = window.setTimeout(() => {
-			saveTimerRef.current = null;
-			void onSave(savePath, latestMarkdownRef.current);
-		}, saveDebounceMs);
+		schedulePendingSave({
+			delay: saveDebounceMs,
+			markdown: latestMarkdownRef.current,
+			path: pathRef.current,
+			ref: pendingSaveRef,
+			save: onSave,
+		});
 	};
 
 	const editor = useEditor({
@@ -242,14 +246,12 @@ export function EditorView({
 	}, [editor, initialMarkdown]);
 
 	useEffect(() => {
+		// Path changes flush the pending edit before the next document takes over.
+		void path;
 		return () => {
-			if (saveTimerRef.current !== null) {
-				window.clearTimeout(saveTimerRef.current);
-				saveTimerRef.current = null;
-				void onSave(path, latestMarkdownRef.current);
-			}
+			flushPendingSave(pendingSaveRef);
 		};
-	}, [path, onSave]);
+	}, [path]);
 
 	useEffect(() => {
 		if (!onMessage) return;
