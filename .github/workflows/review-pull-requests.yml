@@ -160,14 +160,14 @@ jobs:
           ' review.json >/dev/null
           name="pr-review-${PR_NUMBER}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "name=$name" >> "$GITHUB_OUTPUT"
-          mkdir review-artifact
-          mv review.json review-artifact/
+          mkdir -p "$RUNNER_TEMP/review-artifact"
+          mv review.json "$RUNNER_TEMP/review-artifact/"
 
       - name: Upload review
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact.outputs.name }}
-          path: review-artifact/review.json
+          path: ${{ runner.temp }}/review-artifact/review.json
           if-no-files-found: error
           retention-days: 1
 
