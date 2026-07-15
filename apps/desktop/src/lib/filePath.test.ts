@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { isHiddenSidebarFolderName, relativeWorkspacePath } from "./filePath";
+import {
+	dirname,
+	isHiddenSidebarFolderName,
+	relativeWorkspacePath,
+} from "./filePath";
+
+describe("dirname", () => {
+	it("preserves Windows drive roots", () => {
+		expect(dirname("C:/index.html")).toBe("C:/");
+		expect(dirname("C:\\index.html")).toBe("C:\\");
+	});
+});
 
 describe("isHiddenSidebarFolderName", () => {
 	it("matches app-owned directories excluded from the sidebar", () => {

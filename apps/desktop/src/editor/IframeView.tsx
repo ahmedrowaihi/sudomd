@@ -8,8 +8,12 @@ import {
 	dirname,
 	normalizePath,
 	pathEquals,
-	relativeWorkspacePath,
 } from "../lib/filePath";
+import {
+	assertPathInWorkspace,
+	relativePathWithin,
+	resolveWorkspaceFilePath,
+} from "../lib/workspacePath";
 import {
 	deleteMarkdownFile,
 	loadPath,
@@ -198,6 +202,18 @@ async function handleHtmlAppRequest(
 			request.params && typeof request.params === "object"
 				? (request.params as Record<string, unknown>)
 				: {};
+		const resolveFilePath = (path: string, mustExist: boolean) => {
+			const basePath = isDotRelative(path)
+				? dirname(htmlAppPath)
+				: workspacePath;
+			if (!basePath) throw new Error("Could not resolve the HTML app folder.");
+			return resolveWorkspaceFilePath({
+				workspacePath,
+				basePath,
+				path,
+				mustExist,
+			});
+		};
 		if (request.method === "files.list") {
 			const glob = typeof params.glob === "string" ? params.glob : "**/*";
 			const workspaceGlob = await resolveHtmlAppGlob(
@@ -211,9 +227,7 @@ async function handleHtmlAppRequest(
 			};
 		}
 		if (request.method === "files.read") {
-			const path = await resolveMarkdownReference(
-				workspacePath,
-				htmlAppPath,
+			const path = await resolveFilePath(
 				parseInput(markdownPathSchema, params.path),
 				true,
 			);
@@ -223,9 +237,7 @@ async function handleHtmlAppRequest(
 			};
 		}
 		if (request.method === "files.open") {
-			const path = await resolveMarkdownReference(
-				workspacePath,
-				htmlAppPath,
+			const path = await resolveFilePath(
 				parseInput(markdownPathSchema, params.path),
 				true,
 			);
@@ -241,12 +253,7 @@ async function handleHtmlAppRequest(
 					? (params.input as Record<string, unknown>)
 					: params;
 			const createInput = parseInput(createInputSchema, input);
-			const path = await resolveMarkdownReference(
-				workspacePath,
-				htmlAppPath,
-				createInput.path,
-				false,
-			);
+			const path = await resolveFilePath(createInput.path, false);
 			return {
 				ok: true,
 				value: await createMarkdownFile(workspacePath, {
@@ -256,9 +263,7 @@ async function handleHtmlAppRequest(
 			};
 		}
 		if (request.method === "files.update") {
-			const path = await resolveMarkdownReference(
-				workspacePath,
-				htmlAppPath,
+			const path = await resolveFilePath(
 				parseInput(markdownPathSchema, params.path),
 				true,
 			);
@@ -274,9 +279,7 @@ async function handleHtmlAppRequest(
 			};
 		}
 		if (request.method === "files.remove") {
-			const path = await resolveMarkdownReference(
-				workspacePath,
-				htmlAppPath,
+			const path = await resolveFilePath(
 				parseInput(markdownPathSchema, params.path),
 				true,
 			);
@@ -299,47 +302,29 @@ async function handleHtmlAppRequest(
 	}
 }
 
-/** Resolves explicit dot paths from the app while preserving legacy bare paths. */
-export async function resolveMarkdownReference(
-	workspacePath: string,
-	htmlAppPath: string,
-	reference: string,
-	exists: boolean,
-) {
-	const basePath = isDotRelative(reference)
-		? dirname(htmlAppPath)
-		: workspacePath;
-	if (!basePath) throw new Error("Could not resolve the HTML app folder.");
-	const absolutePath = await desktopApi.resolvePath(
-		absoluteWorkspacePath(reference, basePath),
-	);
-	await assertRealWorkspacePath(workspacePath, absolutePath, { exists });
-	return canonicalWorkspacePath(workspacePath, absolutePath);
-}
-
-/** Re-bases app-relative globs for the workspace-rooted file-list IPC. */
+/** Converts app-relative globs to paths from the workspace root. */
 export async function resolveHtmlAppGlob(
 	workspacePath: string,
 	htmlAppPath: string,
 	glob: string,
 ) {
-	if (!isDotRelative(glob)) return glob;
+	if (!isDotRelative(glob)) return glob.replace(/\\/g, "/");
 	const appDirectory = dirname(htmlAppPath);
 	if (!appDirectory) throw new Error("Could not resolve the HTML app folder.");
 	const [absoluteWorkspace, absoluteAppDirectory] = await Promise.all([
 		desktopApi.resolvePath(workspacePath),
 		desktopApi.resolvePath(appDirectory),
 	]);
-	if (!isPathWithin(absoluteWorkspace, absoluteAppDirectory)) {
+	const appDirectoryPath = relativePathWithin(
+		absoluteWorkspace,
+		absoluteAppDirectory,
+	);
+	if (appDirectoryPath === null) {
 		throw new Error("File path must stay inside the workspace.");
 	}
-	await assertRealWorkspacePath(workspacePath, absoluteAppDirectory, {
-		exists: true,
+	await assertPathInWorkspace(workspacePath, absoluteAppDirectory, {
+		mustExist: true,
 	});
-	const appDirectoryPath = relativeWorkspacePath(
-		absoluteAppDirectory,
-		absoluteWorkspace,
-	);
 	const workspaceGlob = normalizePath(
 		`${appDirectoryPath ? `${appDirectoryPath}/` : ""}${glob}`,
 	);
@@ -351,17 +336,6 @@ export async function resolveHtmlAppGlob(
 		throw new Error("File path must stay inside the workspace.");
 	}
 	return workspaceGlob;
-}
-
-async function canonicalWorkspacePath(
-	workspacePath: string,
-	absolutePath: string,
-) {
-	const absoluteWorkspace = await desktopApi.resolvePath(workspacePath);
-	if (!isPathWithin(absoluteWorkspace, absolutePath)) {
-		throw new Error("File path must stay inside the workspace.");
-	}
-	return normalizePath(relativeWorkspacePath(absolutePath, absoluteWorkspace));
 }
 
 /**
@@ -496,40 +470,10 @@ async function resolveWorkspaceFile(
 	const absolutePath = await desktopApi.resolvePath(
 		absoluteWorkspacePath(path, workspacePath),
 	);
-	await assertRealWorkspacePath(workspacePath, absolutePath, options);
+	await assertPathInWorkspace(workspacePath, absolutePath, {
+		mustExist: options.exists,
+	});
 	return absolutePath;
-}
-
-async function assertRealWorkspacePath(
-	workspacePath: string,
-	absolutePath: string,
-	options: { exists: boolean },
-) {
-	const parentPath = dirname(absolutePath);
-	const targetPath = options.exists
-		? absolutePath
-		: await nearestExistingAncestor(parentPath);
-	if (!targetPath) {
-		throw new Error("File path must stay inside the workspace.");
-	}
-	const [realWorkspacePath, realTargetPath] = await Promise.all([
-		desktopApi.realPath(workspacePath),
-		desktopApi.realPath(targetPath),
-	]);
-	if (!isPathWithin(realWorkspacePath, realTargetPath)) {
-		throw new Error("File path must stay inside the workspace.");
-	}
-}
-
-async function nearestExistingAncestor(path: string | null) {
-	let current = path;
-	while (current) {
-		if (await desktopApi.pathExists(current)) return current;
-		const parent = dirname(current);
-		if (parent === current) return null;
-		current = parent;
-	}
-	return null;
 }
 
 function isWindowProxy(source: MessageEventSource | null): source is Window {
@@ -567,15 +511,4 @@ function isSafeFileReference(path: string): boolean {
 
 function isDotRelative(path: string) {
 	return /^(?:\.\.?)[\\/]/.test(path);
-}
-
-function isPathWithin(rootPath: string, path: string): boolean {
-	const root = normalizePathForComparison(rootPath);
-	const candidate = normalizePathForComparison(path);
-	return candidate === root || candidate.startsWith(`${root}/`);
-}
-
-function normalizePathForComparison(path: string): string {
-	const normalized = path.split("\\").join("/").replace(/\/+$/, "");
-	return normalized || "/";
 }

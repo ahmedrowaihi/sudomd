@@ -7,6 +7,10 @@ export function dirname(filePath: string): string | null {
 	const separatorIndex = Math.max(forwardSlash, backSlash);
 	if (separatorIndex < 0) return null;
 	if (separatorIndex === 0) return filePath.slice(0, 1);
+	// Keep the slash: on Windows, `C:` means the drive's current folder.
+	if (separatorIndex === 2 && /^[A-Za-z]:[\\/]/.test(filePath)) {
+		return filePath.slice(0, 3);
+	}
 	return filePath.slice(0, separatorIndex);
 }
 
