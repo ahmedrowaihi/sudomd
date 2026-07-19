@@ -620,6 +620,7 @@ function assetContentType(filePath: string): string {
 	switch (path.extname(filePath).toLowerCase()) {
 		case ".css":
 			return "text/css; charset=utf-8";
+		case ".htm":
 		case ".html":
 			return "text/html; charset=utf-8";
 		case ".js":
