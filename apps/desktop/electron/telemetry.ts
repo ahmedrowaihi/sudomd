@@ -7,7 +7,7 @@ import type {
 	TelemetryChoice,
 	TelemetryConsent,
 } from "../src/desktopApi/types";
-import { singleFlight, writeQueue } from "./concurrency";
+import { coalesced, queued } from "../src/lib/concurrency";
 
 export const telemetryEventNames = {
 	desktopActive: "Desktop Active",
@@ -66,10 +66,14 @@ export class TelemetryManager {
 	private readonly fetch: typeof globalThis.fetch;
 	private readonly now: () => Date;
 	private readonly newInstallationId: () => string;
-	private readonly enqueueWrite = writeQueue();
 	private activeRequest: AbortController | null = null;
 
-	readonly flush = singleFlight(() => this.flushPending());
+	readonly flush = coalesced(() => this.flushPending());
+
+	private readonly write = queued(async (content: string) => {
+		await fs.mkdir(path.dirname(this.options.statePath), { recursive: true });
+		await fs.writeFile(this.options.statePath, content, { mode: 0o600 });
+	});
 
 	constructor(private readonly options: TelemetryManagerOptions) {
 		this.fetch = options.fetch ?? globalThis.fetch;
@@ -224,14 +228,7 @@ export class TelemetryManager {
 	}
 
 	private async persist() {
-		// Capture now so later state changes don't leak into this write.
-		const content = `${JSON.stringify(this.state, null, 2)}\n`;
-		await this.enqueueWrite(async () => {
-			await fs.mkdir(path.dirname(this.options.statePath), {
-				recursive: true,
-			});
-			await fs.writeFile(this.options.statePath, content, { mode: 0o600 });
-		});
+		await this.write(`${JSON.stringify(this.state, null, 2)}\n`);
 	}
 }
 
