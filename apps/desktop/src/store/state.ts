@@ -127,7 +127,6 @@ export function withOpenedDoc(
 	state: DesktopState,
 	path: string,
 	content: string,
-	viewMode: ViewMode = "rich",
 ): DesktopState {
 	const workspacePath = state.workspace.workspacePath;
 	const workspace =
@@ -149,7 +148,7 @@ export function withOpenedDoc(
 			currentPath: path,
 			lastOpenedPath: path,
 			...cleanFileState(content),
-			viewMode,
+			viewMode: "rich",
 		},
 	};
 }
