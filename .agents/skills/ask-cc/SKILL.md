@@ -15,7 +15,7 @@ sandbox, requesting approval for the reusable `claude -p` prefix. Only ask the
 user to log in if `claude auth status` also fails outside the sandbox.
 
 ```bash
-claude -p --model claude-opus-4-7 "$(cat <<'EOF'
+claude -p "$(cat <<'EOF'
 <your question, stated plainly>
 
 Files to consider: <paths, if any>
