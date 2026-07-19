@@ -1220,9 +1220,23 @@ async function createWindow() {
 	mainWindow = window;
 	// Viewer content (e.g. PDF link annotations) must never navigate the app
 	// window or spawn windows; external links go through the shell IPC instead.
-	window.webContents.on("will-navigate", (event, url) => {
-		// Same-URL navigations are reloads (dev HMR); everything else is blocked.
-		if (url !== window.webContents.getURL()) event.preventDefault();
+	// will-frame-navigate covers subframes too, unlike will-navigate.
+	window.webContents.on("will-frame-navigate", (details) => {
+		// Main frame: same-URL navigations are reloads (dev HMR); block the rest.
+		if (details.isMainFrame) {
+			if (details.url !== window.webContents.getURL()) details.preventDefault();
+			return;
+		}
+		// Subframes (PDF and HTML app viewers) may only load app-served assets.
+		// chrome-extension is Chromium's internal PDF viewer taking over the
+		// frame after the asset loads.
+		if (
+			!details.url.startsWith("hubble-asset://") &&
+			!details.url.startsWith("chrome-extension://") &&
+			details.url !== "about:blank"
+		) {
+			details.preventDefault();
+		}
 	});
 	window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 	registerTextContextMenu(window);
