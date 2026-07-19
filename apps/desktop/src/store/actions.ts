@@ -371,6 +371,11 @@ const pendingRenames = new Map<string, string>();
 type LoadPathOptions = {
 	history?: "push" | "none";
 	missing?: "toast" | "silent";
+	/**
+	 * `false` forces code files to load in Hubble even when the user prefers
+	 * the default app: startup restore, history nav, and rename reloads must
+	 * never launch another application.
+	 */
 	launchExternal?: boolean;
 };
 
@@ -685,7 +690,7 @@ export async function renameMarkdownFile(path: string, nextName: string) {
 		await refreshFiles();
 		if (isCurrentFile) {
 			// Path rewrite already updated history; reload content without a new visit.
-			await loadPath(nextPath, { history: "none" });
+			await loadPath(nextPath, { history: "none", launchExternal: false });
 		}
 	} catch (err) {
 		pendingRenames.delete(path);
@@ -1187,11 +1192,11 @@ const { run: loadInternalPath, invalidate: invalidateLoadPath } = latest(
 );
 
 export async function loadPath(path: string, options?: LoadPathOptions) {
-	if (isCodeFile(path) && codeFileOpenModeStore.get() === "default-app") {
-		if (options?.launchExternal === false) {
-			clearViewer();
-			return;
-		}
+	if (
+		isCodeFile(path) &&
+		codeFileOpenModeStore.get() === "default-app" &&
+		options?.launchExternal !== false
+	) {
 		await openPathInDefaultApp(path);
 		return;
 	}
@@ -1259,7 +1264,11 @@ async function navigateHistory(delta: -1 | 1) {
 			const target = working.entries[nextIndex];
 			if (await desktopApi.pathExists(target)) {
 				setHistory({ entries: working.entries, index: nextIndex });
-				await loadPath(target, { history: "none", missing: "silent" });
+				await loadPath(target, {
+					history: "none",
+					missing: "silent",
+					launchExternal: false,
+				});
 				return;
 			}
 			const entries = working.entries.filter((entry) => entry !== target);

@@ -4,7 +4,7 @@ const TEXT_EXTENSION_RE = /\.(txt|text)$/i;
 const PDF_EXTENSION_RE = /\.pdf$/i;
 const IMAGE_EXTENSION_RE = /\.(avif|bmp|gif|ico|jpe?g|png|svg|webp)$/i;
 const CODE_EXTENSION_RE =
-	/\.(astro|bash|c|cc|clj|cljs|cmake|coffee|cpp|cs|css|dart|diff|env|fish|go|graphql|h|hpp|ini|java|js|jsx|json|kt|kts|less|lua|m|mdx|mjs|mts|php|pl|prisma|properties|py|r|rb|rs|sass|scala|scss|sh|sql|svelte|swift|toml|ts|tsx|vue|wasm|xml|yaml|yml|zsh)$/i;
+	/\.(astro|bash|c|cc|clj|cljs|cmake|coffee|cpp|cs|css|dart|diff|env|fish|go|graphql|h|hpp|ini|java|js|jsx|json|kt|kts|less|lua|m|mdx|mjs|mts|php|pl|prisma|properties|py|r|rb|rs|sass|scala|scss|sh|sql|svelte|swift|toml|ts|tsx|vue|xml|yaml|yml|zsh)$/i;
 const CODE_FILE_NAMES = new Set([
 	"cmakelists.txt",
 	"dockerfile",

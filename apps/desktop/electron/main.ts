@@ -1678,7 +1678,8 @@ function registerIpc() {
 			}
 			return { kind: "file", path: toRendererPath(resolved) };
 		}
-		await shell.openPath(resolved);
+		const openError = await shell.openPath(resolved);
+		if (openError) throw new Error(openError);
 		return { kind: "opened" };
 	});
 

@@ -35,7 +35,6 @@ import {
 	fileKindForPath,
 	hasHtmlExtension,
 	hasImageExtension,
-	hasMarkdownExtension,
 	hasPdfExtension,
 	hasTextExtension,
 	isCodeFile,
@@ -855,15 +854,13 @@ function MarkdownEditor({
 			if (error instanceof Error && error.message.includes("Open cancelled")) {
 				return;
 			}
-			if (
-				hasMarkdownExtension(resolved) &&
-				error instanceof Error &&
-				error.message.includes("FILE_NOT_FOUND")
-			) {
+			if (error instanceof Error && error.message.includes("FILE_NOT_FOUND")) {
 				toast.error(`File not found: ${href.split("#", 1)[0] ?? href}`);
 				return;
 			}
-			throw error;
+			toast.error("Failed to open file", {
+				description: error instanceof Error ? error.message : undefined,
+			});
 		}
 	};
 	return (

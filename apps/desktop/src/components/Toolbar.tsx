@@ -20,6 +20,7 @@ import { isChangelogPath } from "../lib/changelogNote";
 import { copyText } from "../lib/clipboard";
 import {
 	hasHtmlExtension,
+	hasTextExtension,
 	isEditableFile,
 	supportsSourceToggle,
 } from "../lib/filePath";
@@ -154,7 +155,9 @@ function NoteActionsMenu({
 	const sourceModeLabel = isSourceMode
 		? isHtml
 			? "View app"
-			: "Edit rich text"
+			: hasTextExtension(path)
+				? "Edit plain text"
+				: "Edit rich text"
 		: "Edit source";
 
 	async function revealFile() {

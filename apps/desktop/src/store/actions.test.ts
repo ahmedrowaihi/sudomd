@@ -1165,8 +1165,9 @@ describe("desktop loadPath", () => {
 		expect(viewerStore.get().currentPath).toBe("/workspace/note.md");
 	});
 
-	it("does not launch the default app while restoring code", async () => {
+	it("keeps code in Hubble when external launches are suppressed", async () => {
 		const api = createDesktopApi();
+		api.readFileText.mockResolvedValue("export const value = 1;");
 		const { loadPath, setCodeFileOpenMode, viewerStore } =
 			await loadStoreActions(api);
 		setCodeFileOpenMode("default-app");
@@ -1174,6 +1175,33 @@ describe("desktop loadPath", () => {
 		await loadPath("/workspace/app.ts", { launchExternal: false });
 
 		expect(api.openPathInDefaultApp).not.toHaveBeenCalled();
+		expect(viewerStore.get().currentPath).toBe("/workspace/app.ts");
+	});
+
+	it("keeps history navigation inside Hubble for code files", async () => {
+		const api = createDesktopApi();
+		api.pathExists.mockResolvedValue(true);
+		api.readFileText.mockResolvedValue("content");
+		const { goBack, loadPath, setCodeFileOpenMode, viewerStore } =
+			await loadStoreActions(api);
+		await loadPath("/workspace/app.ts");
+		await loadPath("/workspace/note.md");
+		setCodeFileOpenMode("default-app");
+
+		await goBack();
+
+		expect(api.openPathInDefaultApp).not.toHaveBeenCalled();
+		expect(viewerStore.get().currentPath).toBe("/workspace/app.ts");
+	});
+
+	it("treats wasm binaries as external files", async () => {
+		const api = createDesktopApi();
+		const { loadPath, viewerStore } = await loadStoreActions(api);
+
+		await loadPath("/workspace/module.wasm");
+
+		expect(api.readFileText).not.toHaveBeenCalled();
+		expect(api.openPathFromLink).toHaveBeenCalledWith("/workspace/module.wasm");
 		expect(viewerStore.get().currentPath).toBeNull();
 	});
 
