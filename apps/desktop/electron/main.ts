@@ -680,7 +680,8 @@ function injectHtmlAppRuntime(html: string): string {
 
 function responseForAsset(filePath: string) {
 	const contentType = assetContentType(filePath);
-	const body = contentType.startsWith("text/html")
+	const isHtml = contentType.startsWith("text/html");
+	const body = isHtml
 		? injectHtmlAppRuntime(fsSync.readFileSync(filePath, "utf8"))
 		: fsSync.readFileSync(filePath);
 
@@ -688,6 +689,12 @@ function responseForAsset(filePath: string) {
 		headers: {
 			"cache-control": "no-store",
 			"content-type": contentType,
+			// Workspace HTML must stay sandboxed (matching IframeView's iframe
+			// sandbox) even if another frame, like the PDF viewer, navigates to
+			// it directly.
+			...(isHtml
+				? { "content-security-policy": "sandbox allow-scripts allow-forms" }
+				: {}),
 		},
 	});
 }
