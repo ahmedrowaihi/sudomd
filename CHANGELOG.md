@@ -9,6 +9,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
 ### Added
 
+- Hubble now collects anonymous usage data to help improve the app, with a clear notice and a Settings toggle to opt out. See [TELEMETRY.md](https://github.com/bholmesdev/hubble.md/blob/main/TELEMETRY.md) for what's collected. [#182](https://github.com/bholmesdev/hubble.md/pull/182)
+
 ### Changed
 
 ### Fixed

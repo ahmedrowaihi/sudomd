@@ -87,6 +87,12 @@ const desktopApi = {
 		ipcRenderer.invoke("desktop:get-launch-workspace-path"),
 	setMenuState: (state) => ipcRenderer.invoke("desktop:set-menu-state", state),
 	getUpdateState: () => ipcRenderer.invoke("desktop:get-update-state"),
+	getTelemetryConsent: () =>
+		ipcRenderer.invoke("desktop:get-telemetry-consent"),
+	setTelemetryConsent: (consent) =>
+		ipcRenderer.invoke("desktop:set-telemetry-consent", { consent }),
+	recordTelemetryActivity: (input) =>
+		ipcRenderer.invoke("desktop:record-telemetry-activity", input),
 	getFullScreen: () => ipcRenderer.invoke("desktop:get-fullscreen"),
 	checkForUpdates: () => ipcRenderer.invoke("desktop:check-for-updates"),
 	installUpdate: () => ipcRenderer.invoke("desktop:install-update"),

@@ -17,12 +17,20 @@ import MingcutePencilLine from "~icons/mingcute/pencil-line";
 import { HtmlAppEmptyState } from "./components/HtmlAppEmptyState";
 import { SettingsDialog, SettingsSection } from "./components/SettingsDialog";
 import { Sidebar } from "./components/Sidebar";
+import {
+	TelemetryConsentCallout,
+	TelemetrySettingsSection,
+} from "./components/TelemetrySection";
 import { TerminalPanel } from "./components/TerminalPanel";
 import { Toolbar } from "./components/Toolbar";
 import { SidebarCallout, UpdatesSection } from "./components/UpdatesSection";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { desktopApi } from "./desktopApi";
-import type { DesktopUpdateState } from "./desktopApi/types";
+import type {
+	DesktopUpdateState,
+	TelemetryChoice,
+	TelemetryConsent,
+} from "./desktopApi/types";
 import { createEmbedExtension } from "./editor/EmbedExtension";
 import { handleImageDrop, handleImagePaste } from "./editor/handleImagePaste";
 import { IframeView, toAssetUrl } from "./editor/IframeView";
@@ -148,6 +156,8 @@ function App() {
 	const [updateState, setUpdateState] = useState<DesktopUpdateState | null>(
 		null,
 	);
+	const [telemetryConsent, setTelemetryConsent] =
+		useState<TelemetryConsent | null>(null);
 	const [focusedSidebarPath, setFocusedSidebarPath] = useState<string | null>(
 		null,
 	);
@@ -179,6 +189,42 @@ function App() {
 			: null;
 	const markWhatsNewSeen = () => {
 		if (currentVersion) setLastSeenVersion(currentVersion);
+	};
+
+	useEffect(() => {
+		void desktopApi.getTelemetryConsent().then(setTelemetryConsent);
+	}, []);
+
+	useEffect(() => {
+		// "Desktop Active" means the app was opened that day (TELEMETRY.md), so
+		// record at launch rather than waiting for a file to open.
+		void desktopApi.recordTelemetryActivity({ usedHtmlApp: false });
+	}, []);
+
+	useEffect(() => {
+		// Covers sessions left open across midnight: opening a file the next day
+		// records that day too.
+		if (
+			state.status === "ready" &&
+			state.currentPath &&
+			!isChangelogPath(state.currentPath)
+		) {
+			void desktopApi.recordTelemetryActivity({ usedHtmlApp: false });
+		}
+	}, [state.currentPath, state.status]);
+
+	const chooseTelemetry = async (choice: TelemetryChoice) => {
+		setTelemetryConsent(await desktopApi.setTelemetryConsent(choice));
+		if (choice !== "enabled") return;
+		// Declining wiped today's record, so re-enabling must record the current
+		// session again; an open HTML file counts as HTML App use.
+		const viewer = viewerStore.get();
+		void desktopApi.recordTelemetryActivity({
+			usedHtmlApp:
+				viewer.status === "ready" &&
+				!!viewer.currentPath &&
+				hasHtmlExtension(viewer.currentPath),
+		});
 	};
 
 	useEffect(() => {
@@ -451,7 +497,10 @@ function App() {
 			<Toolbar
 				scrollContainer={scrollContainerEl}
 				showSidebarBadge={
-					!sidebarOpen && (showReadyCallout || whatsNewVersion !== null)
+					!sidebarOpen &&
+					(showReadyCallout ||
+						whatsNewVersion !== null ||
+						telemetryConsent === "unset")
 				}
 			/>
 			<div className="flex min-h-0 flex-1 overflow-hidden">
@@ -490,6 +539,10 @@ function App() {
 									});
 								}}
 								onDismiss={markWhatsNewSeen}
+							/>
+						) : telemetryConsent === "unset" ? (
+							<TelemetryConsentCallout
+								onChoose={(choice) => void chooseTelemetry(choice)}
 							/>
 						) : undefined
 					}
@@ -553,6 +606,12 @@ function App() {
 			/>
 			<SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen}>
 				<ChatAboutNoteSettingsSection />
+				{telemetryConsent ? (
+					<TelemetrySettingsSection
+						consent={telemetryConsent}
+						onChoose={(choice) => void chooseTelemetry(choice)}
+					/>
+				) : null}
 				{updateState ? (
 					<UpdatesSection
 						state={updateState}

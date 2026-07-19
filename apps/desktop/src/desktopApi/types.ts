@@ -95,6 +95,9 @@ export type DesktopUpdateState = {
 
 export type DesktopPlatform = NodeJS.Platform;
 
+export type TelemetryChoice = "enabled" | "declined";
+export type TelemetryConsent = TelemetryChoice | "unset";
+
 export type TerminalStartOptions = {
 	notePath?: string;
 	initialCommand?: string;
@@ -154,6 +157,9 @@ export type DesktopApi = {
 	getLaunchWorkspacePath(): Promise<string | null>;
 	setMenuState(state: MenuState): Promise<void>;
 	getUpdateState(): Promise<DesktopUpdateState>;
+	getTelemetryConsent(): Promise<TelemetryConsent>;
+	setTelemetryConsent(consent: TelemetryChoice): Promise<TelemetryConsent>;
+	recordTelemetryActivity(input: { usedHtmlApp: boolean }): Promise<void>;
 	getFullScreen(): Promise<boolean>;
 	checkForUpdates(): Promise<void>;
 	installUpdate(): Promise<void>;
