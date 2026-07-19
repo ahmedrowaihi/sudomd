@@ -686,10 +686,8 @@ function responseForAsset(filePath: string) {
 		? injectHtmlAppRuntime(fsSync.readFileSync(filePath, "utf8"))
 		: fsSync.readFileSync(filePath);
 
-	// Scriptable documents must stay sandboxed even if another frame, like
-	// the PDF viewer, navigates to them directly. HTML matches IframeView's
-	// iframe sandbox; SVG is only ever rendered via <img> (where CSP document
-	// directives don't apply and scripts never run), so it gets no tokens.
+	// Keep scriptable documents sandboxed even when a frame (e.g. the PDF
+	// viewer) navigates to them directly. <img> SVG rendering is unaffected.
 	const cspSandbox = isHtml
 		? "sandbox allow-scripts allow-forms"
 		: contentType === "image/svg+xml"
@@ -1231,18 +1229,16 @@ async function createWindow() {
 		},
 	});
 	mainWindow = window;
-	// Viewer content (e.g. PDF link annotations) must never navigate the app
-	// window or spawn windows; external links go through the shell IPC instead.
-	// will-frame-navigate covers subframes too, unlike will-navigate.
+	// Viewer content must never navigate the window or open new ones; external
+	// links go through shell IPC. Unlike will-navigate, this covers subframes.
 	window.webContents.on("will-frame-navigate", (details) => {
-		// Main frame: same-URL navigations are reloads (dev HMR); block the rest.
 		if (details.isMainFrame) {
+			// Same-URL navigations are dev HMR reloads.
 			if (details.url !== window.webContents.getURL()) details.preventDefault();
 			return;
 		}
-		// Subframes (PDF and HTML app viewers) may only load app-served assets.
-		// chrome-extension is Chromium's internal PDF viewer taking over the
-		// frame after the asset loads.
+		// Subframes load app assets only; chrome-extension is Chromium's
+		// internal PDF viewer taking over the frame.
 		if (
 			!details.url.startsWith("hubble-asset://") &&
 			!details.url.startsWith("chrome-extension://") &&

@@ -371,11 +371,7 @@ const pendingRenames = new Map<string, string>();
 type LoadPathOptions = {
 	history?: "push" | "none";
 	missing?: "toast" | "silent";
-	/**
-	 * `false` forces code files to load in Hubble even when the user prefers
-	 * the default app: startup restore, history nav, and rename reloads must
-	 * never launch another application.
-	 */
+	/** `false` keeps code files in Hubble regardless of the default-app preference. */
 	launchExternal?: boolean;
 };
 
