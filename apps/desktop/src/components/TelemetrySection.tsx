@@ -1,10 +1,10 @@
-import { Button, Switch } from "@hubble.md/ui";
+import { Button, Switch } from "@sudomd/ui";
 import { desktopApi } from "../desktopApi";
 import type { TelemetryChoice, TelemetryConsent } from "../desktopApi/types";
 import { SettingsSection } from "./SettingsDialog";
 
 const telemetryDocUrl =
-	"https://github.com/bholmesdev/hubble.md/blob/main/TELEMETRY.md";
+	"https://github.com/ahmedrowaihi/sudomd/blob/main/TELEMETRY.md";
 
 function WhatsCollectedLink() {
 	return (
@@ -31,7 +31,7 @@ export function TelemetryConsentCallout({
 						Anonymous usage data
 					</p>
 					<p className="text-[11px] text-foreground">
-						Hubble collects anonymous data about general usage. This information
+						Sudomd collects anonymous data about general usage. This information
 						helps us improve the app. <WhatsCollectedLink />
 					</p>
 				</div>

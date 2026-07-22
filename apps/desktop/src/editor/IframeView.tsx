@@ -1,4 +1,4 @@
-import { hasMarkdownExtension, withMarkdownExtension } from "@hubble.md/editor";
+import { hasMarkdownExtension, withMarkdownExtension } from "@sudomd/editor";
 import type { CSSProperties } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { z } from "zod/v4";
@@ -120,7 +120,7 @@ export function IframeView({
 				token?: unknown;
 			} | null;
 			if (!isMessageForHtmlApp(data, iframeRef.current)) return;
-			if (!data || data.type !== "hubble:html-app-height") return;
+			if (!data || data.type !== "sudomd:html-app-height") return;
 			// This runtime message proves the injected HTML App booted. iframe load
 			// events alone also fire for browser error documents.
 			if (!recordedUseRef.current) {
@@ -145,12 +145,12 @@ export function IframeView({
 		const onMessage = (event: MessageEvent) => {
 			const request = event.data as HtmlAppRequest | null;
 			if (!isMessageForHtmlApp(request, iframeRef.current)) return;
-			if (!request || request.type !== "hubble:request") return;
+			if (!request || request.type !== "sudomd:request") return;
 			void handleHtmlAppRequest(request, workspacePath, htmlAppPath).then(
 				(response) => {
 					if (!isWindowProxy(event.source)) return;
 					event.source.postMessage(
-						{ ...response, id: request.id, type: "hubble:response" },
+						{ ...response, id: request.id, type: "sudomd:response" },
 						"*",
 					);
 				},
@@ -192,7 +192,7 @@ export function toAssetUrl(path: string): string {
 	const pathWithEncodedRoot = encodedPath.startsWith("/")
 		? `%2F${encodedPath.slice(1)}`
 		: encodedPath;
-	return `hubble-asset://local/${pathWithEncodedRoot}`;
+	return `sudomd-asset://local/${pathWithEncodedRoot}`;
 }
 
 async function handleHtmlAppRequest(
@@ -296,7 +296,7 @@ async function handleHtmlAppRequest(
 			};
 		}
 		throw new Error(
-			`Unknown Hubble HTML app method: ${String(request.method)}`,
+			`Unknown Sudomd HTML app method: ${String(request.method)}`,
 		);
 	} catch (error) {
 		return {
@@ -356,7 +356,7 @@ async function readMarkdownFile(workspacePath: string, path: string) {
 }
 
 /**
- * Opens a workspace Markdown file in Hubble after proving the app stayed inside
+ * Opens a workspace Markdown file in Sudomd after proving the app stayed inside
  * the current workspace.
  */
 async function openMarkdownFile(workspacePath: string, path: string) {

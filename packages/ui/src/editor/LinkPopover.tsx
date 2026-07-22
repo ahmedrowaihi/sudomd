@@ -5,10 +5,7 @@ import {
 	shift,
 	type VirtualElement,
 } from "@floating-ui/dom";
-import {
-	getActiveLinkRange,
-	wikiDisplayNameForTarget,
-} from "@hubble.md/editor";
+import { getActiveLinkRange, wikiDisplayNameForTarget } from "@sudomd/editor";
 import type { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { keymatch } from "keymatch";

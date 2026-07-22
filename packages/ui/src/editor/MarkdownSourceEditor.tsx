@@ -3,7 +3,7 @@ import Document from "@tiptap/extension-document";
 import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { HubbleCodeBlock } from "./CodeBlockExtension";
+import { SudomdCodeBlock } from "./CodeBlockExtension";
 import {
 	flushPendingSave,
 	type PendingSave,
@@ -61,7 +61,7 @@ export function MarkdownSourceEditor({
 		extensions: [
 			SourceDocument,
 			StarterKit.configure({ codeBlock: false, document: false }),
-			HubbleCodeBlock.configure({ defaultLanguage: sourceLanguage }),
+			SudomdCodeBlock.configure({ defaultLanguage: sourceLanguage }),
 		],
 		content: sourceDocFromMarkdown(initialMarkdown, sourceLanguage),
 		onUpdate: ({ editor: current }) => {

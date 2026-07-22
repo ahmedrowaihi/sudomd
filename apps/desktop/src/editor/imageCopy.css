@@ -1,0 +1,19 @@
+[data-hubble-editor] .pm-image-frame {
+	position: relative;
+}
+
+[data-hubble-editor] .pm-image-controls {
+	position: absolute;
+	z-index: 1;
+	inset-block-start: 0.45rem;
+	inset-inline-end: 0.45rem;
+	display: flex;
+	align-items: center;
+	gap: 0.15rem;
+	opacity: 0;
+	transition: opacity 160ms var(--ease-snappy);
+}
+
+[data-hubble-editor] .pm-image-frame:hover .pm-image-controls {
+	opacity: 1;
+}

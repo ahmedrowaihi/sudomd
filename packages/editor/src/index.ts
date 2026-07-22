@@ -1,3 +1,5 @@
+export { BlockDirectionExtension } from "./BlockDirectionExtension";
+export { basecampHtmlToMarkdown } from "./basecampHtmlToMarkdown";
 export { ContextMenuSpellcheckExtension } from "./ContextMenuSpellcheckExtension";
 export { FakeSelectionExtension } from "./FakeSelectionExtension";
 export {
@@ -46,6 +48,11 @@ export {
 	wikiDisplayNameForTarget,
 	withMarkdownExtension,
 } from "./markdownPath";
+export {
+	type BasecampDiagram,
+	type BasecampDocument,
+	markdownToBasecampHtml,
+} from "./markdownToBasecampHtml";
 export { markdownToTiptapDoc } from "./markdownToProsemirror";
 export {
 	selectionToMarkdown,

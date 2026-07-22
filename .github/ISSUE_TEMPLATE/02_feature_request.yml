@@ -1,5 +1,5 @@
 name: Feature Request
-description: Propose a Hubble feature or product improvement.
+description: Propose a Sudomd feature or product improvement.
 labels: ["enhancement", "needs-triage"]
 body:
   - type: textarea
@@ -13,7 +13,7 @@ body:
   - type: textarea
     id: desired-behavior
     attributes:
-      label: What should Hubble do?
+      label: What should Sudomd do?
       description: Describe the behavior you want to see.
       placeholder: A user should be able to ...
     validations:

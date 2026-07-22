@@ -1,11 +1,11 @@
 ---
 name: write-product-spec
-description: Write a PRODUCT.md spec for a significant Hubble user-facing feature, focused only on user experience and observable behavior. Use when the user asks for a product spec, UX spec, PRD, desired behavior doc, or wants feature behavior clarified before implementation.
+description: Write a PRODUCT.md spec for a significant Sudomd user-facing feature, focused only on user experience and observable behavior. Use when the user asks for a product spec, UX spec, PRD, desired behavior doc, or wants feature behavior clarified before implementation.
 ---
 
 # write-product-spec
 
-Write a `PRODUCT.md` spec for a significant Hubble feature.
+Write a `PRODUCT.md` spec for a significant Sudomd feature.
 
 ## Overview
 
@@ -13,18 +13,18 @@ The product spec settles the product decisions and spells out the user flow. A m
 
 Stay out of implementation. No internal types, state layout, data flow, module architecture, or file paths. Those belong in the companion `TECH.md` from `write-tech-spec`.
 
-"User" means the consumer of the surface: the person using Hubble desktop or web, or the developer invoking `hubble` for CLI surfaces.
+"User" means the consumer of the surface: the person using Sudomd desktop or web, or the developer invoking `sudomd` for CLI surfaces.
 
 Write specs to `specs/<id>/PRODUCT.md`, where `<id>` is a GitHub issue id prefixed with `gh-` (for example `specs/gh-456/PRODUCT.md`) or a short kebab-case feature name. `specs/` should contain only id-named directories as direct children. Use the sibling `TECH.md` path for the same id.
 
-Only create a GitHub issue when the user explicitly asks. This repo uses GitHub Issues on `bholmesdev/hubble.md` via `gh`; see `docs/agents/issue-tracker.md`.
+Only create a GitHub issue when the user explicitly asks. This repo uses GitHub Issues on `ahmedrowaihi/sudomd` via `gh`; see `docs/agents/issue-tracker.md`.
 
 ## Before Writing
 
 Gather only enough context to write observable behavior:
 
 - The existing user journey and the desired one.
-- Nearby Hubble screens, flows, and design-system primitives the experience should reuse. Do not invent a new visual system.
+- Nearby Sudomd screens, flows, and design-system primitives the experience should reuse. Do not invent a new visual system.
 - Project vocabulary from `CONTEXT.md`: Workspace, Workspace Folder, Plain Folder, Loose File, Cloud Sync, Markdown File, Asset, Embed, Embed Bundle, Workspace Snapshot.
 
 ## Structure

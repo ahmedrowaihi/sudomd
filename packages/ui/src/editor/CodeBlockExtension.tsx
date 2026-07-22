@@ -12,6 +12,7 @@ import { useState } from "react";
 import MingcuteCheckLine from "~icons/mingcute/check-line";
 import MingcuteCopy2Line from "~icons/mingcute/copy-2-line";
 import { Button } from "../primitives/button";
+import { MermaidView } from "./MermaidView";
 
 const DEFAULT_TAB_SIZE = 4;
 const TWO_SPACE_LANGUAGES = new Set([
@@ -24,7 +25,7 @@ const TWO_SPACE_LANGUAGES = new Set([
 	"ts",
 	"tsx",
 ]);
-export const CODE_BLOCK_COPY_EVENT = "hubble:code-block-copy";
+export const CODE_BLOCK_COPY_EVENT = "sudomd:code-block-copy";
 
 const lowlight = createLowlight(common);
 lowlight.registerAlias({
@@ -35,7 +36,7 @@ lowlight.registerAlias({
 	markdown: ["md"],
 });
 
-export const HubbleCodeBlock = CodeBlockLowlight.extend({
+export const SudomdCodeBlock = CodeBlockLowlight.extend({
 	addKeyboardShortcuts() {
 		const { "Mod-Alt-c": _toggleCodeBlock, ...shortcuts } =
 			this.parent?.() ?? {};
@@ -190,6 +191,7 @@ function CodeBlockView({ node, updateAttributes }: NodeViewProps) {
 					className={language ? `language-${language}` : undefined}
 				/>
 			</pre>
+			{language === "mermaid" ? <MermaidView code={node.textContent} /> : null}
 		</NodeViewWrapper>
 	);
 }
@@ -236,4 +238,5 @@ const codeBlockLanguages = [
 	{ value: "python", label: "Python" },
 	{ value: "rust", label: "Rust" },
 	{ value: "go", label: "Go" },
+	{ value: "mermaid", label: "Mermaid" },
 ] as const;

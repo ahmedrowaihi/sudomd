@@ -1,18 +1,32 @@
-import {
-	stripMarkdownExtension,
-	withMarkdownExtension,
-} from "@hubble.md/editor";
+import { stripMarkdownExtension, withMarkdownExtension } from "@sudomd/editor";
 import type { FileEntry } from "../store/state";
-import { joinPath, relativeWorkspacePath } from "./filePath";
+import { dirname, joinPath, relativeWorkspacePath } from "./filePath";
+
+// Join `rel` onto `baseDir` and collapse `.`/`..` segments.
+function resolveRelative(baseDir: string, rel: string): string {
+	const isAbsolute = baseDir.startsWith("/");
+	const parts = `${baseDir}/${rel}`
+		.split("/")
+		.filter((part) => part !== "" && part !== ".");
+	const stack: string[] = [];
+	for (const part of parts) {
+		if (part === "..") stack.pop();
+		else stack.push(part);
+	}
+	return (isAbsolute ? "/" : "") + stack.join("/");
+}
 
 export function resolveWikiPath({
 	target,
 	files,
 	workspacePath,
+	currentPath,
 }: {
 	target: string;
 	files: FileEntry[];
 	workspacePath: string | null;
+	/** The open file, so relative links (`./`, `../`, same folder) resolve correctly. */
+	currentPath?: string | null;
 }) {
 	const path = target.split("#")[0];
 	const pathWithExtension = withMarkdownExtension(path);
@@ -21,6 +35,16 @@ export function resolveWikiPath({
 	const directMatch = files.find((file) => file.path === directPath);
 	if (directMatch) return directMatch.path;
 
+	// 1. Resolve relative to the current file's folder — a markdown link like
+	// `today/README.md` or `../plan.md` is relative to the doc it lives in.
+	const baseDir = currentPath ? dirname(currentPath) : null;
+	if (baseDir) {
+		const resolved = resolveRelative(baseDir, pathWithExtension);
+		const relativeMatch = files.find((file) => file.path === resolved);
+		if (relativeMatch) return relativeMatch.path;
+	}
+
+	// 2. Resolve relative to the workspace root.
 	const exactPath = workspacePath
 		? joinPath(workspacePath, pathWithExtension)
 		: pathWithExtension;

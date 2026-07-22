@@ -110,7 +110,7 @@ export function PlainTextEditor({
 			className="relative flex h-full min-h-0 flex-col"
 			ref={editorRootRef}
 			data-hubble-editor
-			data-hubble-plain-text-editor
+			data-sudomd-plain-text-editor
 		>
 			<div
 				className="editorViewport relative min-h-0 flex-1 overflow-auto overscroll-contain"

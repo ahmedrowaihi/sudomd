@@ -1,6 +1,8 @@
 import { Menu } from "@base-ui/react/menu";
 import type { ReactNode } from "react";
 import MingcuteCheckLine from "~icons/mingcute/check-line";
+import MingcuteCloseLine from "~icons/mingcute/close-line";
+import MingcuteEditLine from "~icons/mingcute/edit-line";
 import MingcuteSelectorVerticalLine from "~icons/mingcute/selector-vertical-line";
 import { cn } from "../lib/utils";
 
@@ -9,13 +11,24 @@ function Item({
 	icon,
 	selected,
 	className,
+	onRename,
+	renameLabel,
+	onRemove,
+	removeLabel,
 	...props
-}: Menu.Item.Props & { icon?: ReactNode; selected?: boolean }) {
+}: Menu.Item.Props & {
+	icon?: ReactNode;
+	selected?: boolean;
+	onRename?: () => void;
+	renameLabel?: string;
+	onRemove?: () => void;
+	removeLabel?: string;
+}) {
 	return (
 		<Menu.Item
 			{...props}
 			className={cn(
-				"flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-start text-[11px] text-sidebar-foreground outline-hidden select-none data-highlighted:bg-accent",
+				"group flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-start text-[11px] text-sidebar-foreground outline-hidden select-none data-highlighted:bg-accent",
 				className,
 			)}
 		>
@@ -26,7 +39,40 @@ function Item({
 			) : (
 				<span className="size-3 shrink-0" />
 			)}
-			{children}
+			<span className="min-w-0 flex-1 truncate">{children}</span>
+			{onRename && (
+				<button
+					type="button"
+					aria-label={renameLabel ?? "Rename"}
+					title={renameLabel ?? "Rename"}
+					className="ms-auto grid size-4 shrink-0 place-content-center rounded-sm text-muted-foreground opacity-0 hover:bg-accent hover:text-foreground group-data-highlighted:opacity-100"
+					onClick={(event) => {
+						event.preventDefault();
+						event.stopPropagation();
+						onRename();
+					}}
+				>
+					<MingcuteEditLine className="size-3" />
+				</button>
+			)}
+			{onRemove && (
+				<button
+					type="button"
+					aria-label={removeLabel ?? "Remove"}
+					title={removeLabel ?? "Remove"}
+					className={cn(
+						"grid size-4 shrink-0 place-content-center rounded-sm text-muted-foreground opacity-0 hover:bg-accent hover:text-foreground group-data-highlighted:opacity-100",
+						!onRename && "ms-auto",
+					)}
+					onClick={(event) => {
+						event.preventDefault();
+						event.stopPropagation();
+						onRemove();
+					}}
+				>
+					<MingcuteCloseLine className="size-3" />
+				</button>
+			)}
 		</Menu.Item>
 	);
 }

@@ -1,10 +1,11 @@
-# hubble.md context
+# sudomd context
 
 Glossary for shared terms across the project. Implementation details belong in code or ADRs — not here.
 
+Sudomd is a **local-first desktop app**. It reads and writes the filesystem directly; there is no cloud backend, sync engine, or web surface.
+
 ## Flagged ambiguities
 
-- **A Workspace is defined by its configuration, not by the cloud.** Don't conflate "is this a Workspace?" (does the folder have a `.hubble/` configuration) with "is it synced?" ([[Cloud Sync]] enabled). A desktop Workspace can be local-only and gain Cloud Sync later. *(Note: not yet true in code — `init()` requires a Convex backend to mint a `workspaceId`. This is the subject of an active spec; see the deferred-cloud-sync handoff.)*
 - **"Open folder" (desktop runtime) vs "Workspace."** The desktop editor operates on any open folder path and reads/writes the filesystem directly; that folder may be a [[Workspace Folder]] or a [[Plain Folder]]. Say "open folder" for the runtime notion, "Workspace" for the configured logical entity.
 - **"Open file" can mean OS selection or editor navigation.** In desktop shell language, opening a file may mean choosing a Loose File from the operating system. In [[HTML App]] API language, opening a file means navigating the editor to a [[Markdown File]] inside the current [[Workspace]].
 
@@ -12,19 +13,15 @@ Glossary for shared terms across the project. Implementation details belong in c
 
 ### Workspace
 
-A logical container of Markdown Files and Assets, defined by a **workspace configuration** (`.hubble/config.json`) — *not* by the cloud. A Workspace has a stable identity from the moment it is created.
-
-[[Cloud Sync]] is an optional capability layered on top. A Workspace may be **local-only** (configured, no cloud backend) or **synced** (bound to a Convex deployment, with a row in the `workspaces` table). On the **web** a Workspace is always synced — there is no local filesystem to fall back to. On **desktop** a Workspace can be created local-only and have Cloud Sync enabled later.
-
-The Workspace is the unit; the **access path differs by surface**. The web app reads/writes through the Convex backend. The desktop app reads/writes the [[Workspace Folder]] directly on disk (the working source of truth), with the background sync engine reconciling to Convex when Cloud Sync is on. Features that must run on both surfaces — notably [[Embed]]s — target the Workspace as the unit and resolve against whichever backend the current surface provides; they never assume Convex.
+A logical container of Markdown Files and Assets, defined by a **workspace configuration** (`.sudomd/config.json`). Configuration presence — not anything external — is what makes a folder a Workspace. A Workspace has a stable identity from the moment it is created, and reads/writes its [[Workspace Folder]] directly on disk (the source of truth).
 
 ### Workspace Folder
 
-The on-disk realization of a [[Workspace]]: a folder containing the workspace configuration at `.hubble/config.json`. **Configuration presence — not cloud binding — is what makes a folder a Workspace Folder.** When [[Cloud Sync]] is enabled the config also carries the Convex linkage (today: `workspaceId`, `workspaceName`); a local-only Workspace Folder has configuration without it. Multiple Workspace Folders across devices can map to the same synced Workspace.
+The on-disk realization of a [[Workspace]]: a folder containing the workspace configuration at `.sudomd/config.json`. **Configuration presence is what makes a folder a Workspace Folder.**
 
 ### Plain Folder
 
-A folder open in the desktop app with **no** workspace configuration (no `.hubble/`). It is not a [[Workspace]]: the desktop app reads and edits it as a general markdown viewer, nothing syncs, and Workspace-scoped features (e.g. [[Embed]]s) do not resolve. Adding a configuration promotes it to a [[Workspace Folder]].
+A folder open in the desktop app with **no** workspace configuration (no `.sudomd/`). It is not a [[Workspace]]: the desktop app reads and edits it as a general markdown viewer, and Workspace-scoped features (e.g. [[Embed]]s) do not resolve. Adding a configuration promotes it to a [[Workspace Folder]].
 
 ### Folder
 
@@ -36,17 +33,13 @@ _Avoid_: Directory
 A single sidebar row that represents a chain of nested Folders where each Folder has exactly one child Folder and no sibling [[Markdown File]]s or Folders. Each segment in the row names one real Folder, and can be targeted independently for folder actions such as dragging or dropping.
 _Avoid_: Compacted directory name
 
-### Cloud Sync
-
-The optional capability that binds a [[Workspace]] to a Convex deployment, enabling multi-device sync and web access. Required for web Workspaces; opt-in on desktop, where it can be enabled after a Workspace is created by supplying a Convex deployment URL. Whether Cloud Sync is on is orthogonal to whether a folder is a Workspace.
-
 ### Markdown File
 
-A markdown document on the local filesystem or in a Workspace.
+A markdown document in a [[Workspace]] or opened directly from the filesystem.
 
 ### HTML App
 
-A folder-local `.html` file that Hubble runs as a self-contained, interactive UI. Opening an HTML App directly shows it in the main content panel instead of the Markdown editor. An HTML App reaches files in the open Folder only through a capability-scoped, async **broker**, never directly.
+A folder-local `.html` file that Sudomd runs as a self-contained, interactive UI. Opening an HTML App directly shows it in the main content panel instead of the Markdown editor. An HTML App reaches files in the open Folder only through a capability-scoped, async **broker**, never directly.
 
 ### Slash Command
 
@@ -58,7 +51,7 @@ User-facing structured fields attached to a Markdown File. File Properties are d
 
 ### Loose File
 
-A Markdown File opened directly from the filesystem, not through a Workspace Folder or Plain Folder. The desktop app can read and edit it with access scoped to the file and nearby assets; nothing syncs.
+A Markdown File opened directly from the filesystem, not through a Workspace Folder or Plain Folder. The desktop app can read and edit it with access scoped to the file and nearby assets.
 
 ### Asset
 

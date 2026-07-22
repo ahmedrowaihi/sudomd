@@ -16,7 +16,7 @@ afterEach(async () => {
 async function setup(
 	overrides: Partial<ConstructorParameters<typeof TelemetryManager>[0]> = {},
 ) {
-	const dir = await fs.mkdtemp(path.join(os.tmpdir(), "hubble-telemetry-"));
+	const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sudomd-telemetry-"));
 	dirs.push(dir);
 	const send = vi.fn(
 		async (_input: RequestInfo | URL, _init?: RequestInit) =>
@@ -25,10 +25,10 @@ async function setup(
 	const manager = new TelemetryManager({
 		statePath: path.join(dir, "telemetry.json"),
 		endpoint: "https://example.test/telemetry",
-		domain: "hubble.md",
+		domain: "sudomd",
 		canSend: true,
 		version: "1.2.3",
-		userAgent: () => "Mozilla/5.0 Hubble/1.2.3",
+		userAgent: () => "Mozilla/5.0 Sudomd/1.2.3",
 		fetch: send,
 		now: () => new Date(2026, 6, 19, 23, 30),
 		installationId: () => "123e4567-e89b-42d3-a456-426614174000",
@@ -81,9 +81,9 @@ describe("TelemetryManager", () => {
 		const activity = JSON.parse(String(send.mock.calls[0]?.[1]?.body));
 		const htmlApp = JSON.parse(String(send.mock.calls[1]?.[1]?.body));
 		expect(activity).toMatchObject({
-			domain: "hubble.md",
+			domain: "sudomd",
 			name: "Desktop Active",
-			url: "https://hubble.md/telemetry/desktop",
+			url: "https://sudomd/telemetry/desktop",
 			interactive: false,
 			props: {
 				installationId: "123e4567-e89b-42d3-a456-426614174000",
@@ -110,7 +110,7 @@ describe("TelemetryManager", () => {
 	});
 
 	it("aborts an in-flight request when disabled", async () => {
-		let requestSignal: AbortSignal | null = null;
+		let requestSignal: AbortSignal | undefined;
 		const send = vi.fn(
 			async (_input: RequestInfo | URL, init?: RequestInit) =>
 				new Promise<Response>((_resolve, reject) => {
@@ -185,7 +185,7 @@ describe("TelemetryManager", () => {
 		const manager = new TelemetryManager({
 			statePath,
 			endpoint: "https://example.test",
-			domain: "hubble.md",
+			domain: "sudomd",
 			canSend: true,
 			version: "1",
 			userAgent: () => "Mozilla/5.0",

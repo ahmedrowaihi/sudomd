@@ -2,7 +2,7 @@
 
 ## Summary
 
-Source mode lets desktop users edit the exact raw Markdown for the open Markdown File, including front matter, without leaving Hubble. The user can switch between the normal rich editor and a full-page highlighted Markdown source editor from the note actions menu.
+Source mode lets desktop users edit the exact raw Markdown for the open Markdown File, including front matter, without leaving Sudomd. The user can switch between the normal rich editor and a full-page highlighted Markdown source editor from the note actions menu.
 
 ## Problem
 
@@ -31,14 +31,14 @@ The entry point is the existing note actions overflow menu in the desktop toolba
 2. Selecting `Edit source` switches the main content panel from the rich editor to a full-page source editor for the same file.
 3. While source mode is active, the same menu item reads `Edit rich text`.
 4. Selecting `Edit rich text` switches the main content panel back to the rich editor for the same file.
-5. Source mode displays the whole Markdown File exactly as Hubble currently knows it, including YAML front matter, blank lines, comments, unsupported front matter fields, and the Markdown body.
+5. Source mode displays the whole Markdown File exactly as Sudomd currently knows it, including YAML front matter, blank lines, comments, unsupported front matter fields, and the Markdown body.
 6. The source editor fills the document area that the rich editor normally occupies. Existing app chrome, sidebar, terminal panel, update banners, and external-change conflict banner remain visible and behave normally.
 7. Source mode uses a highlighted Markdown editing surface. It must not look or behave like an unstyled plain textarea.
 8. Source mode is editable with normal text editing affordances: typing, deletion, selection, paste, undo/redo, scrolling, and tab indentation.
 9. Edits made in source mode update the current file through the same save behavior users already get in rich mode. Users should not need a separate save command.
 10. If the user switches back to rich mode after editing source, the rich editor reflects the latest source text.
 11. If source edits include valid front matter, File Properties reflect those front matter changes after returning to rich mode.
-12. If source edits include invalid or unsupported front matter, Hubble preserves that source text and shows the existing File Properties unavailable/unsupported behavior after returning to rich mode.
+12. If source edits include invalid or unsupported front matter, Sudomd preserves that source text and shows the existing File Properties unavailable/unsupported behavior after returning to rich mode.
 13. Switching modes must not discard unsaved in-memory edits. The visible next mode uses the latest editor content, not only the last content flushed to disk.
 14. Opening another file resets the view to rich mode for Markdown Files.
 15. Opening an HTML App file does not show source-mode controls and does not preserve a prior Markdown source-mode state.

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Hubble Desktop follows the operating system's appearance. When macOS (or the
+Sudomd Desktop follows the operating system's appearance. When macOS (or the
 host OS) is in dark mode, the app, the editor, and embedded HTML apps switch to
 a dark color scheme; when it returns to light, they switch back. There is no
 in-app theme control in this slice — the OS is the single source of truth.

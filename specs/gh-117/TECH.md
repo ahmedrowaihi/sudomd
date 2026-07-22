@@ -2,7 +2,7 @@
 
 ## Context
 
-Issue: https://github.com/bholmesdev/hubble.md/issues/117
+Issue: https://github.com/ahmedrowaihi/sudomd/issues/117
 
 Product spec: `specs/gh-117/PRODUCT.md`
 
@@ -18,7 +18,7 @@ Two `cmdk` command menus exist in `packages/ui/src/editor/`: `SlashCommandMenu.t
 
 The issue asks us to choose between naive on-demand search and a dedicated content index, and to weigh Pagefind. We choose **naive on-demand search on both surfaces**, and reject Pagefind.
 
-**Pagefind is the wrong shape.** It is a build-time indexer: a CLI crawls built HTML output and emits a WASM runtime plus static index fragments. Hubble has no build step over user content, and that content mutates on every keystroke. The parts of Pagefind worth learning from are its ranking behavior and its excerpt-with-context presentation, not its architecture.
+**Pagefind is the wrong shape.** It is a build-time indexer: a CLI crawls built HTML output and emits a WASM runtime plus static index fragments. Sudomd has no build step over user content, and that content mutates on every keystroke. The parts of Pagefind worth learning from are its ranking behavior and its excerpt-with-context presentation, not its architecture.
 
 **Web would not benefit from an index.** The Convex `files` table already stores `content: v.string()` inline (`packages/sync-backend/convex/schema.ts`), and `getFilesByWorkspace` returns full rows. `loadPath` in `apps/www/src/store/actions.ts` does not fetch one file — it calls `backend.getFiles(workspaceId)` and `.find()`s the path, because every note body is already resident in client memory. Adding a Convex `.searchIndex()` would build a server-side index to search data the client already holds. When web lands, its content search is an in-memory scan.
 

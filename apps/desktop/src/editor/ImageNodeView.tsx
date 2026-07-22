@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import MingcuteLoading3Line from "~icons/mingcute/loading-3-line";
 import { desktopApi } from "../desktopApi";
 import { persistPastedImage } from "./handleImagePaste";
+import { ImageCopyButton } from "./ImageCopyButton";
 
 const uploads = new Map<string, Promise<string>>();
 
@@ -99,12 +100,15 @@ export function ImageNodeView({
 				{uploadId && rawSrc.length === 0 ? (
 					<UploadPlaceholder />
 				) : resolvedSrc.length > 0 ? (
-					<img
-						src={resolvedSrc}
-						alt={node.attrs.alt || ""}
-						title={node.attrs.title || ""}
-						className={selected ? "outline-2 outline-blue-400" : ""}
-					/>
+					<>
+						<img
+							src={resolvedSrc}
+							alt={node.attrs.alt || ""}
+							title={node.attrs.title || ""}
+							className={selected ? "outline-2 outline-blue-400" : ""}
+						/>
+						<ImageCopyButton src={resolvedSrc} />
+					</>
 				) : (
 					<div className="pm-image-missing">Image unavailable</div>
 				)}
@@ -166,7 +170,7 @@ function joinPath(baseDir: string, relativePath: string): string {
 }
 
 function isResolvableLocalPath(src: string): boolean {
-	return !/^(data:|https?:|file:|asset:|hubble-asset:)/i.test(src);
+	return !/^(data:|https?:|file:|asset:|sudomd-asset:)/i.test(src);
 }
 
 function safeDecodeUriComponent(value: string): string {

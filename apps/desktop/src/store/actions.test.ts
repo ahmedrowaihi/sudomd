@@ -77,13 +77,13 @@ describe("desktop savePathContent", () => {
 		);
 	});
 
-	it("defaults code files to Hubble and persists the external-app preference", async () => {
+	it("defaults code files to Sudomd and persists the external-app preference", async () => {
 		const api = createDesktopApi();
 		const { codeFileOpenModeStore, setCodeFileOpenMode } =
 			await loadStoreActions(api);
 		const { STORAGE_KEY } = await import("./persistence");
 
-		expect(codeFileOpenModeStore.get()).toBe("hubble");
+		expect(codeFileOpenModeStore.get()).toBe("sudomd");
 		setCodeFileOpenMode("default-app");
 
 		expect(codeFileOpenModeStore.get()).toBe("default-app");
@@ -1127,7 +1127,7 @@ describe("desktop loadPath", () => {
 		});
 	});
 
-	it("opens images in Hubble without decoding them as text", async () => {
+	it("opens images in Sudomd without decoding them as text", async () => {
 		const api = createDesktopApi();
 		api.pathExists.mockResolvedValue(true);
 		const { loadPath, viewerStore } = await loadStoreActions(api);
@@ -1139,7 +1139,7 @@ describe("desktop loadPath", () => {
 		expect(api.openPathFromLink).not.toHaveBeenCalled();
 	});
 
-	it("opens code in Hubble by default", async () => {
+	it("opens code in Sudomd by default", async () => {
 		const api = createDesktopApi();
 		api.readFileText.mockResolvedValue("export const value = 1;");
 		const { loadPath, viewerStore } = await loadStoreActions(api);
@@ -1165,7 +1165,7 @@ describe("desktop loadPath", () => {
 		expect(viewerStore.get().currentPath).toBe("/workspace/note.md");
 	});
 
-	it("keeps code in Hubble when external launches are suppressed", async () => {
+	it("keeps code in Sudomd when external launches are suppressed", async () => {
 		const api = createDesktopApi();
 		api.readFileText.mockResolvedValue("export const value = 1;");
 		const { loadPath, setCodeFileOpenMode, viewerStore } =
@@ -1178,7 +1178,7 @@ describe("desktop loadPath", () => {
 		expect(viewerStore.get().currentPath).toBe("/workspace/app.ts");
 	});
 
-	it("keeps history navigation inside Hubble for code files", async () => {
+	it("keeps history navigation inside Sudomd for code files", async () => {
 		const api = createDesktopApi();
 		api.pathExists.mockResolvedValue(true);
 		api.readFileText.mockResolvedValue("content");

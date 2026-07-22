@@ -1,16 +1,16 @@
 {
-	"name": "@hubble.md/runtime",
+	"name": "@sudomd/runtime",
 	"version": "0.0.1",
-	"description": "Runtime injected into Hubble.md HTML Apps and Embeds",
+	"description": "Runtime injected into Sudomd HTML Apps and Embeds",
 	"license": "MIT",
-	"author": "Ben Holmes <hey@bholmes.dev>",
+	"author": "Ahmed Rowaihi",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/bholmesdev/hubble.md.git",
+		"url": "git+https://github.com/ahmedrowaihi/sudomd.git",
 		"directory": "packages/runtime"
 	},
-	"homepage": "https://hubble.md",
-	"bugs": "https://github.com/bholmesdev/hubble.md/issues",
+	"homepage": "https://sudomd",
+	"bugs": "https://github.com/ahmedrowaihi/sudomd/issues",
 	"type": "module",
 	"exports": {
 		"./html-app-theme.css": "./html-app-theme.css",

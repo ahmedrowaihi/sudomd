@@ -1,10 +1,10 @@
+import { useStoreValue } from "@simplestack/store/react";
 import {
 	Button,
 	Sidebar as SharedSidebar,
 	type SidebarFocusedItem,
 	SidebarFrame,
-} from "@hubble.md/ui";
-import { useStoreValue } from "@simplestack/store/react";
+} from "@sudomd/ui";
 import type { ReactNode } from "react";
 import { desktopApi } from "../desktopApi";
 import { copyText } from "../lib/clipboard";

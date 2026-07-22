@@ -2,13 +2,13 @@
 
 ## Context
 
-Issue: https://github.com/bholmesdev/hubble.md/issues/142
+Issue: https://github.com/ahmedrowaihi/sudomd/issues/142
 
 Product spec: `specs/gh-142/PRODUCT.md`
 
 Current commit researched: `19f98b4817256bc3cbc89f371761b6ab3d8c26a1`
 
-Hubble desktop currently opens Markdown Files into `EditorView`, which parses front matter out of `initialMarkdown`, edits the body as a TipTap document, and recombines front matter plus body before `onLocalChange` and `onSave`. ADR-0003 establishes that File Properties live in YAML front matter and the full Markdown File remains the source of truth across desktop, web, Workspace Folders, Plain Folders, and Loose Files.
+Sudomd desktop currently opens Markdown Files into `EditorView`, which parses front matter out of `initialMarkdown`, edits the body as a TipTap document, and recombines front matter plus body before `onLocalChange` and `onSave`. ADR-0003 establishes that File Properties live in YAML front matter and the full Markdown File remains the source of truth across desktop, web, Workspace Folders, Plain Folders, and Loose Files.
 
 Relevant code:
 
@@ -17,8 +17,8 @@ Relevant code:
 - `apps/desktop/src/store/state.ts`: `viewerStore`, `DocumentState`, `cleanFileState`, conflict baseline helpers.
 - `apps/desktop/src/store/actions.ts`: `updateEditorContent`, `savePathContent`, file load/save/conflict actions.
 - `apps/desktop/src/store/persistence.ts`: desktop state hydration/serialization. Persisted document state currently stores only `lastOpenedPath`.
-- `packages/ui/src/editor/EditorView.tsx`: rich editor, frontmatter/body split, `HubbleCodeBlock` extension use.
-- `packages/ui/src/editor/CodeBlockExtension.tsx`: `HubbleCodeBlock`, lowlight Markdown alias, code block controls, tab behavior.
+- `packages/ui/src/editor/EditorView.tsx`: rich editor, frontmatter/body split, `SudomdCodeBlock` extension use.
+- `packages/ui/src/editor/CodeBlockExtension.tsx`: `SudomdCodeBlock`, lowlight Markdown alias, code block controls, tab behavior.
 
 ## Affected Apps and Packages
 
@@ -28,7 +28,7 @@ Relevant code:
 
 `packages/ui`
 
-- Owns the reusable TipTap editor pieces. Add a source editor component here if it reuses `HubbleCodeBlock` and should be testable outside the desktop shell.
+- Owns the reusable TipTap editor pieces. Add a source editor component here if it reuses `SudomdCodeBlock` and should be testable outside the desktop shell.
 
 `packages/editor`
 
@@ -66,13 +66,13 @@ Add desktop actions:
 
 - Receives `path`, `initialMarkdown`, `onLocalChange`, `onSave`, and `onScrollContainerChange`.
 - Creates a minimal TipTap editor whose document is exactly one `codeBlock` node with `language: "md"` and text content equal to the whole Markdown File.
-- Uses `HubbleCodeBlock` for highlighting and editing behavior.
+- Uses `SudomdCodeBlock` for highlighting and editing behavior.
 - On update, reads the single code block text and calls `onLocalChange(path, markdown)` plus debounced `onSave(path, markdown)`, mirroring `EditorView`.
 - On prop content changes from reload/conflict resolution, updates the code block without emitting local changes.
 - On unmount, flushes pending save like `EditorView`.
 - Sets the scroll container for toolbar scroll behavior and focuses the editor after mount.
 
-`HubbleCodeBlock` reuse:
+`SudomdCodeBlock` reuse:
 
 - Prefer a configurable node view option over duplicating the component. Add an option such as `sourceMode?: boolean` or `controls?: "default" | "source"` only if necessary.
 - In source mode, hide or disable the language selector because PRODUCT behavior requires Markdown source, not user-selectable languages.
@@ -101,7 +101,7 @@ Add desktop actions:
 4. Implement `MarkdownSourceEditor`.
    - Place in `packages/ui/src/editor/MarkdownSourceEditor.tsx` if it can stay app-agnostic.
    - Export it from the UI package editor barrel if needed.
-   - Use `StarterKit.configure({ codeBlock: false })` plus `HubbleCodeBlock.configure(...)`.
+   - Use `StarterKit.configure({ codeBlock: false })` plus `SudomdCodeBlock.configure(...)`.
    - Define helpers to build/read a single code-block TipTap document.
    - Reuse `DEFAULT_SAVE_DEBOUNCE_MS` semantics from `EditorView`; consider extracting the constant only if duplication becomes noisy.
 
@@ -136,12 +136,12 @@ Map to product behavior:
 Commands:
 
 - Quick iteration: `pnpm check`
-- Targeted tests: `pnpm --filter @hubble.md/desktop test` and UI/editor tests once added.
+- Targeted tests: `pnpm --filter @sudomd/desktop test` and UI/editor tests once added.
 - Final confidence: `pnpm build:desktop`
 
 Manual desktop validation:
 
-1. Run `HUBBLE_DESKTOP_ENABLE_CDP=1 pnpm dev:desktop`.
+1. Run `SUDOMD_DESKTOP_ENABLE_CDP=1 pnpm dev:desktop`.
 2. Open a Workspace Folder or Plain Folder with a Markdown File containing front matter.
 3. Switch to `Edit source`, confirm highlighted whole-file Markdown and initial focus.
 4. Edit front matter and body, wait for save, switch to `Edit rich text`, confirm File Properties and body reflect edits.

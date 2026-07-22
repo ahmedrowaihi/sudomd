@@ -2,7 +2,7 @@
 
 ## Context
 
-Issue: https://github.com/bholmesdev/hubble.md/issues/111
+Issue: https://github.com/ahmedrowaihi/sudomd/issues/111
 
 Product spec: `specs/gh-111/PRODUCT.md`
 

@@ -1,4 +1,4 @@
-import { Modal } from "@hubble.md/ui";
+import { Modal } from "@sudomd/ui";
 import type { ReactNode } from "react";
 
 export function SettingsDialog({

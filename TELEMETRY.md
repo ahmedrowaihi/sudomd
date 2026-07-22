@@ -1,6 +1,6 @@
-# Hubble Telemetry
+# Sudomd Telemetry
 
-Hubble collects completely anonymous telemetry data about general usage. Telemetry is on by default, and you may opt out at any time.
+Sudomd collects completely anonymous telemetry data about general usage. Telemetry is on by default, and you may opt out at any time.
 
 ## Why Is Telemetry Collected?
 
@@ -21,7 +21,7 @@ Every event carries the same properties:
 | --- | --- | --- |
 | `installationId` | `123e4567-e89b-42d3-a456-426614174000` | Random UUID. Not derived from your machine, network, or any account. |
 | `localDate` | `2026-07-19` | The day the activity happened, in your local time zone. |
-| `version` | `0.1.21` | Hubble version. |
+| `version` | `0.1.21` | Sudomd version. |
 | `os` | `darwin` | Operating system. |
 | `arch` | `arm64` | CPU architecture. |
 
@@ -29,9 +29,9 @@ An example event payload:
 
 ```json
 {
-  "domain": "hubble.md",
+  "domain": "sudomd",
   "name": "Desktop Active",
-  "url": "https://hubble.md/telemetry/desktop",
+  "url": "https://sudomd/telemetry/desktop",
   "interactive": false,
   "props": {
     "installationId": "123e4567-e89b-42d3-a456-426614174000",
@@ -53,7 +53,7 @@ The installation ID identifies an install, not a person: it is generated randoml
 
 ## Will This Data Be Shared?
 
-Events are stored indefinitely in Hubble's [Plausible](https://plausible.io) account and are used only to guide Hubble development.
+Events are stored indefinitely in Sudomd's [Plausible](https://plausible.io) account and are used only to guide Sudomd development.
 
 ## How Do I Opt Out?
 

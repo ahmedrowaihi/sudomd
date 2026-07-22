@@ -1,0 +1,14 @@
+{
+	"slug": "myapp",
+	"displayName": "MyApp",
+	"appId": "com.myapp.desktop",
+	"author": "Jane Doe <jane@example.com>",
+	"repo": "janedoe/myapp",
+	"tagPrefix": "myapp-v",
+	"icon": "./mylogo.png",
+	"theme": {
+		"brand": "oklch(0.55 0.15 255)",
+		"brandAccent": "oklch(0.82 0.16 85)",
+		"brandAccentForeground": "oklch(0.35 0.05 255)"
+	}
+}

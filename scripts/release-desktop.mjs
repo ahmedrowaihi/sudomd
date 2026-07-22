@@ -34,7 +34,7 @@ function parseArgs(args) {
 		else if (arg === "--help" || arg === "-h") {
 			console.log("Usage: pnpm release:desktop [x.y.z] [--dry-run] [--yes]");
 			process.exit(0);
-		} else if (!version) version = arg.replace(/^desktop-v/, "");
+		} else if (!version) version = arg.replace(/^sudomd-v/, "");
 		else fail(`Unexpected argument: ${arg}`);
 	}
 
@@ -166,7 +166,7 @@ function verifyRepository(tag) {
 async function confirmRelease(version) {
 	const prompt = createInterface({ input: stdin, output: stdout });
 	const answer = await prompt.question(
-		`Commit, tag, and push desktop-v${version}? [y/N] `,
+		`Commit, tag, and push sudomd-v${version}? [y/N] `,
 	);
 	prompt.close();
 	return /^(y|yes)$/i.test(answer.trim());
@@ -188,7 +188,7 @@ async function main() {
 		fail(`Version must exceed ${currentVersion}`);
 	}
 
-	const tag = `desktop-v${version}`;
+	const tag = `sudomd-v${version}`;
 	verifyRepository(tag);
 	const changelog = readFileSync(changelogPath, "utf8");
 	const promotedChangelog = promoteChangelog(changelog, version, today());
