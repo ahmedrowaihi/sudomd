@@ -9,6 +9,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.2.3] - 2026-07-23
+
+### Added
+
 - Copy a rendered image to the clipboard: hover an image in the editor and click the copy button, like Mermaid diagrams.
 
 - Browse every workspace file, edit plain text and code, view PDFs and images in Sudomd, and open any file in its default app. Thanks [@zcuric](https://github.com/zcuric) for the suggestion! [#183](https://github.com/ahmedrowaihi/sudomd/pull/183)
@@ -17,8 +25,6 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 ### Changed
 
 - Editor blocks now use a consistent reading rhythm, with tighter list grouping and clearer heading separation. [f6c44a2](https://github.com/ahmedrowaihi/sudomd/commit/f6c44a2)
-
-### Fixed
 
 ## [0.2.1] - 2026-07-07
 
